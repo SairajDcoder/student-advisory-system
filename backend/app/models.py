@@ -1,6 +1,7 @@
 """
 SQLAlchemy ORM Data Model for AdvisorAI.
-Includes all 14 core entities + supabase_uid linkage for Supabase Auth.
+Uses `advisorai_*` table names so they never collide with pre-existing
+Supabase `public.users` (UUID) tables or other project schemas.
 """
 from datetime import datetime, timezone
 from sqlalchemy import (
@@ -24,7 +25,7 @@ def utcnow():
 
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "advisorai_users"
 
     id = Column(Integer, primary_key=True, index=True)
     supabase_uid = Column(String(64), unique=True, index=True, nullable=True)
@@ -45,10 +46,10 @@ class User(Base):
 
 
 class Mentor(Base):
-    __tablename__ = "mentors"
+    __tablename__ = "advisorai_mentors"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("advisorai_users.id", ondelete="CASCADE"), unique=True, nullable=False)
     specialization = Column(String(120), default="10th/12th Stream & Career Counseling")
     department = Column(String(80), default="Academic Advisory")
     bio = Column(Text, default="")
@@ -59,11 +60,11 @@ class Mentor(Base):
 
 
 class Student(Base):
-    __tablename__ = "students"
+    __tablename__ = "advisorai_students"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
-    mentor_id = Column(Integer, ForeignKey("mentors.id", ondelete="SET NULL"), nullable=True)
+    user_id = Column(Integer, ForeignKey("advisorai_users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    mentor_id = Column(Integer, ForeignKey("advisorai_mentors.id", ondelete="SET NULL"), nullable=True)
 
     education_stage = Column(String(20), default="12th")  # "10th" | "12th" | "college"
     board_name = Column(String(40), default="CBSE")
@@ -98,10 +99,10 @@ class Student(Base):
 
 
 class Subject(Base):
-    __tablename__ = "subjects"
+    __tablename__ = "advisorai_subjects"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     code = Column(String(30), nullable=False)
     name = Column(String(120), nullable=False)
     credits = Column(Integer, default=4)
@@ -113,11 +114,11 @@ class Subject(Base):
 
 
 class Mark(Base):
-    __tablename__ = "marks"
+    __tablename__ = "advisorai_marks"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
-    subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(Integer, ForeignKey("advisorai_subjects.id", ondelete="CASCADE"), nullable=False)
     internal_score = Column(Float, default=75.0)
     assignment_score = Column(Float, default=75.0)
     exam_score = Column(Float, default=75.0)
@@ -129,10 +130,10 @@ class Mark(Base):
 
 
 class Attendance(Base):
-    __tablename__ = "attendance"
+    __tablename__ = "advisorai_attendance"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     subject_name = Column(String(120), nullable=False)
     classes_attended = Column(Integer, default=24)
     total_classes = Column(Integer, default=30)
@@ -143,10 +144,10 @@ class Attendance(Base):
 
 
 class Skill(Base):
-    __tablename__ = "skills"
+    __tablename__ = "advisorai_skills"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(80), nullable=False)
     level = Column(Integer, default=60)
 
@@ -154,10 +155,10 @@ class Skill(Base):
 
 
 class Interest(Base):
-    __tablename__ = "interests"
+    __tablename__ = "advisorai_interests"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     topic = Column(String(80), nullable=False)
     weight = Column(Integer, default=80)
 
@@ -165,10 +166,10 @@ class Interest(Base):
 
 
 class Prediction(Base):
-    __tablename__ = "predictions"
+    __tablename__ = "advisorai_predictions"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     predicted_cgpa = Column(Float, nullable=False)
     pass_probability = Column(Float, nullable=False)
     risk_level = Column(String(20), nullable=False)
@@ -181,10 +182,10 @@ class Prediction(Base):
 
 
 class Recommendation(Base):
-    __tablename__ = "recommendations"
+    __tablename__ = "advisorai_recommendations"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     rec_type = Column(String(30), nullable=False)
     title = Column(String(120), nullable=False)
     match_pct = Column(Float, nullable=False)
@@ -198,10 +199,10 @@ class Recommendation(Base):
 
 
 class ChatMessage(Base):
-    __tablename__ = "chat_messages"
+    __tablename__ = "advisorai_chat_messages"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     sender = Column(String(20), nullable=False)
     message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utcnow)
@@ -210,10 +211,10 @@ class ChatMessage(Base):
 
 
 class StudyPlan(Base):
-    __tablename__ = "study_plans"
+    __tablename__ = "advisorai_study_plans"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     day_of_week = Column(String(20), nullable=False)
     subject = Column(String(120), nullable=False)
     topic = Column(String(160), nullable=False)
@@ -226,10 +227,10 @@ class StudyPlan(Base):
 
 
 class Notification(Base):
-    __tablename__ = "notifications"
+    __tablename__ = "advisorai_notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("advisorai_users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String(120), nullable=False)
     message = Column(Text, nullable=False)
     category = Column(String(30), default="info")
@@ -240,10 +241,10 @@ class Notification(Base):
 
 
 class Checkin(Base):
-    __tablename__ = "checkins"
+    __tablename__ = "advisorai_checkins"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("advisorai_students.id", ondelete="CASCADE"), nullable=False)
     mood = Column(String(30), nullable=False)
     stress_score = Column(Integer, default=3)
     sleep_hours = Column(Float, default=7.0)

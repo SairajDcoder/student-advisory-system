@@ -1,7 +1,8 @@
 -- AdvisorAI Supabase PostgreSQL Schema (14 Core Entities)
--- Run this in Supabase Dashboard -> SQL Editor when connecting backend DATABASE_URL to Supabase Postgres.
+-- Uses `advisorai_*` table names so they never collide with any existing
+-- `public.users` (UUID) or other project tables in your Supabase database.
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS advisorai_users (
   id SERIAL PRIMARY KEY,
   supabase_uid VARCHAR(64) UNIQUE,
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -16,19 +17,19 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS mentors (
+CREATE TABLE IF NOT EXISTS advisorai_mentors (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id INTEGER UNIQUE NOT NULL REFERENCES advisorai_users(id) ON DELETE CASCADE,
   specialization VARCHAR(120) DEFAULT '10th/12th Stream & Career Counseling',
   department VARCHAR(80) DEFAULT 'Academic Advisory',
   bio TEXT DEFAULT '',
   office_hours VARCHAR(100) DEFAULT 'Mon-Fri, 4:00 PM - 6:00 PM'
 );
 
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE IF NOT EXISTS advisorai_students (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  mentor_id INTEGER REFERENCES mentors(id) ON DELETE SET NULL,
+  user_id INTEGER UNIQUE NOT NULL REFERENCES advisorai_users(id) ON DELETE CASCADE,
+  mentor_id INTEGER REFERENCES advisorai_mentors(id) ON DELETE SET NULL,
   education_stage VARCHAR(20) DEFAULT '12th',
   board_name VARCHAR(40) DEFAULT 'CBSE',
   stream VARCHAR(60) DEFAULT 'Science (PCM)',
@@ -48,9 +49,9 @@ CREATE TABLE IF NOT EXISTS students (
   upcoming_deadlines_count INTEGER DEFAULT 2
 );
 
-CREATE TABLE IF NOT EXISTS subjects (
+CREATE TABLE IF NOT EXISTS advisorai_subjects (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   code VARCHAR(30) NOT NULL,
   name VARCHAR(120) NOT NULL,
   credits INTEGER DEFAULT 4,
@@ -58,10 +59,10 @@ CREATE TABLE IF NOT EXISTS subjects (
   weak_area BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE IF NOT EXISTS marks (
+CREATE TABLE IF NOT EXISTS advisorai_marks (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-  subject_id INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
+  subject_id INTEGER NOT NULL REFERENCES advisorai_subjects(id) ON DELETE CASCADE,
   internal_score DOUBLE PRECISION DEFAULT 75.0,
   assignment_score DOUBLE PRECISION DEFAULT 75.0,
   exam_score DOUBLE PRECISION DEFAULT 75.0,
@@ -69,9 +70,9 @@ CREATE TABLE IF NOT EXISTS marks (
   semester INTEGER DEFAULT 1
 );
 
-CREATE TABLE IF NOT EXISTS attendance (
+CREATE TABLE IF NOT EXISTS advisorai_attendance (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   subject_name VARCHAR(120) NOT NULL,
   classes_attended INTEGER DEFAULT 24,
   total_classes INTEGER DEFAULT 30,
@@ -79,23 +80,23 @@ CREATE TABLE IF NOT EXISTS attendance (
   recorded_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS skills (
+CREATE TABLE IF NOT EXISTS advisorai_skills (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   name VARCHAR(80) NOT NULL,
   level INTEGER DEFAULT 60
 );
 
-CREATE TABLE IF NOT EXISTS interests (
+CREATE TABLE IF NOT EXISTS advisorai_interests (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   topic VARCHAR(80) NOT NULL,
   weight INTEGER DEFAULT 80
 );
 
-CREATE TABLE IF NOT EXISTS predictions (
+CREATE TABLE IF NOT EXISTS advisorai_predictions (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   predicted_cgpa DOUBLE PRECISION NOT NULL,
   pass_probability DOUBLE PRECISION NOT NULL,
   risk_level VARCHAR(20) NOT NULL,
@@ -105,9 +106,9 @@ CREATE TABLE IF NOT EXISTS predictions (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS recommendations (
+CREATE TABLE IF NOT EXISTS advisorai_recommendations (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   rec_type VARCHAR(30) NOT NULL,
   title VARCHAR(120) NOT NULL,
   match_pct DOUBLE PRECISION NOT NULL,
@@ -118,17 +119,17 @@ CREATE TABLE IF NOT EXISTS recommendations (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS chat_messages (
+CREATE TABLE IF NOT EXISTS advisorai_chat_messages (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   sender VARCHAR(20) NOT NULL,
   message TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS study_plans (
+CREATE TABLE IF NOT EXISTS advisorai_study_plans (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   day_of_week VARCHAR(20) NOT NULL,
   subject VARCHAR(120) NOT NULL,
   topic VARCHAR(160) NOT NULL,
@@ -138,9 +139,9 @@ CREATE TABLE IF NOT EXISTS study_plans (
   order_index INTEGER DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS notifications (
+CREATE TABLE IF NOT EXISTS advisorai_notifications (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES advisorai_users(id) ON DELETE CASCADE,
   title VARCHAR(120) NOT NULL,
   message TEXT NOT NULL,
   category VARCHAR(30) DEFAULT 'info',
@@ -148,9 +149,9 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS checkins (
+CREATE TABLE IF NOT EXISTS advisorai_checkins (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES advisorai_students(id) ON DELETE CASCADE,
   mood VARCHAR(30) NOT NULL,
   stress_score INTEGER DEFAULT 3,
   sleep_hours DOUBLE PRECISION DEFAULT 7.0,
