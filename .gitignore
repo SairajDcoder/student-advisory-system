@@ -29,3 +29,11 @@ results/*.csv
 # Misc
 rubrics.docx
 *.log
+
+# AdvisorAI frontend & backend generated artifacts
+frontend/node_modules/
+frontend/dist/
+backend/*.db
+backend/ml_models/*.pkl
+backend/ml_models/*.json
+backend/data/*.csv
