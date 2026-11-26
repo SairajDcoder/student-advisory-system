@@ -26,7 +26,7 @@ function CgpaGauge({ value }: { value: number }) {
         <path
           d="M 21 90 A 64 64 0 0 1 149 90"
           fill="none"
-          stroke="#4F46E5"
+          stroke="#7B2D8E"
           strokeWidth="14"
           strokeDasharray={circumference}
           strokeDashoffset={dashOffset}
@@ -121,20 +121,19 @@ export function PerformancePage() {
         <ErrorBanner message={error || 'Data unavailable'} onRetry={load} />
       ) : (
         <div className="space-y-6">
-          <div>
-            <h1 className="font-['Poppins'] text-2xl font-bold">Performance &amp; AI Prediction</h1>
-            <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-              See your next-term forecast, subject marks, and simple reasons behind the score.
+          <div className="rounded-2xl bg-gradient-to-r from-[#7B2D8E] to-[#581C68] p-6 text-white shadow-md">
+            <h1 className="font-['Poppins'] text-2xl font-bold">Score Forecast &amp; Insights</h1>
+            <p className="mt-1 text-base text-purple-100">
+              See where your grades are heading, which subjects shine, and what you can tweak today.
             </p>
           </div>
 
-          {/* Gauge + Subject Bar Chart */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <Card className="flex flex-col items-center justify-between text-center">
               <div className="w-full">
                 <h2 className="font-['Poppins'] text-lg font-bold">Predicted Next CGPA</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Based on attendance, internal tests &amp; study habits
+                  Based on attendance, internal tests &amp; study hours
                 </p>
               </div>
               <div className="my-4">
@@ -149,7 +148,7 @@ export function PerformancePage() {
             </Card>
 
             <Card className="lg:col-span-2">
-              <h2 className="font-['Poppins'] text-lg font-bold">Subject-wise Performance</h2>
+              <h2 className="font-['Poppins'] text-lg font-bold">Subject-wise Scorecard</h2>
               <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
                 Compare internal test marks, assignments, and attendance per subject
               </p>
@@ -161,23 +160,22 @@ export function PerformancePage() {
                     <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="internal" name="Internal %" fill="#4F46E5" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="assignment" name="Assignments %" fill="#14B8A6" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="attendance" name="Attendance %" fill="#94A3B8" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="internal" name="Internal %" fill="#7B2D8E" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="assignment" name="Assignments %" fill="#FF6B4A" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="attendance" name="Attendance %" fill="#14B8A6" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
           </div>
 
-          {/* Explainable AI: Why this prediction? */}
           <Card>
             <div className="flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-[#4F46E5]" aria-hidden="true" />
+              <HelpCircle className="h-5 w-5 text-[#7B2D8E]" aria-hidden="true" />
               <h2 className="font-['Poppins'] text-lg font-bold">Why this prediction?</h2>
             </div>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Our AI explains the top factors shaping your forecast in simple words (powered by SHAP).
+              Here are the top habits and scores shaping your forecast in simple words.
             </p>
 
             <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -186,7 +184,7 @@ export function PerformancePage() {
                 return (
                   <div
                     key={item.key}
-                    className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50"
+                    className="rounded-xl border border-purple-100 bg-[#FAF7FD] p-4 dark:border-slate-800 dark:bg-slate-800/50"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -202,7 +200,7 @@ export function PerformancePage() {
                           positive ? 'text-emerald-600' : 'text-rose-600'
                         }`}
                       >
-                        {item.impact}% weight
+                        {item.impact}% impact
                       </span>
                     </div>
                     <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
@@ -222,23 +220,22 @@ export function PerformancePage() {
             </div>
           </Card>
 
-          {/* Interactive What-If Simulator */}
           <Card>
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-5 w-5 text-[#14B8A6]" aria-hidden="true" />
-                  <h2 className="font-['Poppins'] text-lg font-bold">What-If Simulator</h2>
+                  <SlidersHorizontal className="h-5 w-5 text-[#FF6B4A]" aria-hidden="true" />
+                  <h2 className="font-['Poppins'] text-lg font-bold">Test Your Score (What-If)</h2>
                 </div>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Move the sliders to test how attending more classes or extra study hours changes your CGPA.
+                  Slide to see how boosting attendance or extra weekly study hours lifts your forecast.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={runSimulation}
                 disabled={simulating}
-                className="rounded-xl bg-[#4F46E5] px-5 py-2.5 text-base font-semibold text-white hover:bg-[#4338CA] disabled:opacity-60"
+                className="rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] px-5 py-3 text-base font-bold text-white shadow-sm hover:brightness-105 disabled:opacity-60"
               >
                 {simulating ? 'Calculating...' : 'Update Forecast'}
               </button>
@@ -248,7 +245,7 @@ export function PerformancePage() {
               <label className="block">
                 <span className="flex justify-between text-sm font-semibold">
                   <span>Attendance</span>
-                  <span className="text-[#4F46E5]">{sim.attendance_pct}%</span>
+                  <span className="text-[#7B2D8E]">{sim.attendance_pct}%</span>
                 </span>
                 <input
                   type="range"
@@ -256,14 +253,14 @@ export function PerformancePage() {
                   max={100}
                   value={sim.attendance_pct}
                   onChange={(e) => setSim({ ...sim, attendance_pct: Number(e.target.value) })}
-                  className="mt-2 w-full accent-[#4F46E5]"
+                  className="mt-2 w-full accent-[#7B2D8E]"
                 />
               </label>
 
               <label className="block">
                 <span className="flex justify-between text-sm font-semibold">
                   <span>Internal Marks</span>
-                  <span className="text-[#4F46E5]">{sim.internal_marks_avg}%</span>
+                  <span className="text-[#7B2D8E]">{sim.internal_marks_avg}%</span>
                 </span>
                 <input
                   type="range"
@@ -271,14 +268,14 @@ export function PerformancePage() {
                   max={100}
                   value={sim.internal_marks_avg}
                   onChange={(e) => setSim({ ...sim, internal_marks_avg: Number(e.target.value) })}
-                  className="mt-2 w-full accent-[#4F46E5]"
+                  className="mt-2 w-full accent-[#7B2D8E]"
                 />
               </label>
 
               <label className="block">
                 <span className="flex justify-between text-sm font-semibold">
                   <span>Assignments</span>
-                  <span className="text-[#4F46E5]">{sim.assignment_score_avg}%</span>
+                  <span className="text-[#7B2D8E]">{sim.assignment_score_avg}%</span>
                 </span>
                 <input
                   type="range"
@@ -286,7 +283,7 @@ export function PerformancePage() {
                   max={100}
                   value={sim.assignment_score_avg}
                   onChange={(e) => setSim({ ...sim, assignment_score_avg: Number(e.target.value) })}
-                  className="mt-2 w-full accent-[#4F46E5]"
+                  className="mt-2 w-full accent-[#7B2D8E]"
                 />
               </label>
 

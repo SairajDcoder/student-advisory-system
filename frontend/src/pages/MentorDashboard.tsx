@@ -91,16 +91,15 @@ export function MentorDashboard() {
         <ErrorBanner message={error} onRetry={load} />
       ) : (
         <div className="space-y-6">
-          <div>
+          <div className="rounded-2xl bg-gradient-to-r from-[#7B2D8E] to-[#581C68] p-6 text-white shadow-md">
             <h1 className="font-['Poppins'] text-2xl font-bold">Mentor Advisory Portal</h1>
-            <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
+            <p className="mt-1 text-base text-purple-100">
               Monitor 10th &amp; 12th students, review AI risk alerts, add remarks, and schedule 1-on-1s.
             </p>
           </div>
 
-          {/* Search & Risk Filter */}
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="relative flex-1 max-w-md">
+            <div className="relative max-w-md flex-1">
               <Search
                 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
                 aria-hidden="true"
@@ -110,7 +109,7 @@ export function MentorDashboard() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Filter by student name or stream..."
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-base dark:border-slate-700 dark:bg-slate-900"
+                className="w-full rounded-xl border border-purple-100 bg-white py-2.5 pl-10 pr-4 text-base dark:border-slate-700 dark:bg-slate-900"
               />
             </div>
 
@@ -120,10 +119,10 @@ export function MentorDashboard() {
                   key={level}
                   type="button"
                   onClick={() => setRiskFilter(level)}
-                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                  className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
                     riskFilter === level
-                      ? 'bg-[#4F46E5] text-white'
-                      : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
+                      ? 'bg-[#7B2D8E] text-white'
+                      : 'border border-slate-200 bg-white text-slate-700 hover:bg-purple-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
                   }`}
                 >
                   {level}
@@ -132,10 +131,9 @@ export function MentorDashboard() {
             </div>
           </div>
 
-          {/* Student List */}
           <Card className="overflow-x-auto p-0">
             <table className="w-full min-w-[680px] text-left">
-              <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
+              <thead className="border-b border-purple-100 bg-[#FAF7FD] text-xs font-bold uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
                 <tr>
                   <th className="px-6 py-4">Student</th>
                   <th className="px-6 py-4">Stage / Track</th>
@@ -146,50 +144,57 @@ export function MentorDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm dark:divide-slate-800">
-                {filtered.map((st) => (
-                  <tr
-                    key={st.student_id}
-                    className="transition hover:bg-slate-50/70 dark:hover:bg-slate-800/40"
-                  >
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-slate-900 dark:text-white">{st.full_name}</p>
-                      <p className="text-xs text-slate-500">{st.email}</p>
-                      {st.wants_mentor_talk && (
-                        <span className="mt-1 inline-block rounded-full bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">
-                          Requested Mentor Chat
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-semibold">{st.education_stage}</span> • {st.stream}
-                    </td>
-                    <td className="px-6 py-4 font-semibold">
-                      {st.current_cgpa.toFixed(1)}{' '}
-                      <span className="text-xs text-[#4F46E5]">({st.predicted_cgpa.toFixed(2)})</span>
-                    </td>
-                    <td className="px-6 py-4 font-semibold">{st.attendance_pct.toFixed(0)}%</td>
-                    <td className="px-6 py-4">
-                      <RiskBadge risk={st.risk_level} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        type="button"
-                        onClick={() => openDrawer(st)}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 px-3.5 py-2 text-sm font-semibold text-[#4F46E5] hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-300"
-                      >
-                        <Eye className="h-4 w-4" aria-hidden="true" />
-                        <span>View Details</span>
-                      </button>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                      No students match this filter yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filtered.map((st) => (
+                    <tr
+                      key={st.student_id}
+                      className="transition hover:bg-purple-50/40 dark:hover:bg-slate-800/40"
+                    >
+                      <td className="px-6 py-4">
+                        <p className="font-bold text-slate-900 dark:text-white">{st.full_name}</p>
+                        <p className="text-xs text-slate-500">{st.email}</p>
+                        {st.wants_mentor_talk && (
+                          <span className="mt-1 inline-block rounded-full bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">
+                            Requested Mentor Chat
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-semibold">{st.education_stage}</span> • {st.stream}
+                      </td>
+                      <td className="px-6 py-4 font-semibold">
+                        {st.current_cgpa.toFixed(1)}{' '}
+                        <span className="text-xs text-[#7B2D8E]">({st.predicted_cgpa.toFixed(2)})</span>
+                      </td>
+                      <td className="px-6 py-4 font-semibold">{st.attendance_pct.toFixed(0)}%</td>
+                      <td className="px-6 py-4">
+                        <RiskBadge risk={st.risk_level} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          type="button"
+                          onClick={() => openDrawer(st)}
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 px-3.5 py-2 text-sm font-bold text-[#7B2D8E] hover:bg-purple-100 dark:bg-purple-950 dark:text-purple-200"
+                        >
+                          <Eye className="h-4 w-4" aria-hidden="true" />
+                          <span>View Details</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </Card>
 
-          {/* Student Detail Drawer */}
           {selected && (
-            <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-xs">
+            <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/55 backdrop-blur-xs">
               <div className="h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-2xl dark:bg-slate-900">
                 <div className="flex items-start justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
                   <div>
@@ -209,7 +214,7 @@ export function MentorDashboard() {
                 </div>
 
                 <div className="mt-5 space-y-5">
-                  <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/60">
+                  <div className="flex items-center justify-between rounded-2xl bg-[#FAF7FD] p-4 dark:bg-slate-800/60">
                     <div>
                       <p className="text-xs font-semibold text-slate-500">Predicted CGPA</p>
                       <p className="font-['Poppins'] text-2xl font-bold">
@@ -222,7 +227,6 @@ export function MentorDashboard() {
                     <RiskBadge risk={selected.risk_level} />
                   </div>
 
-                  {/* AI Summary */}
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">
                       AI Risk Summary
@@ -231,7 +235,7 @@ export function MentorDashboard() {
                       {selected.top_reasons.slice(0, 3).map((r) => (
                         <li
                           key={r.key}
-                          className="rounded-xl border border-slate-200 p-3 text-sm dark:border-slate-800"
+                          className="rounded-xl border border-purple-100 p-3 text-sm dark:border-slate-800"
                         >
                           <span className="font-bold">{r.factor}: </span>
                           {r.plain_text}
@@ -240,7 +244,6 @@ export function MentorDashboard() {
                     </ul>
                   </div>
 
-                  {/* Subject Marks */}
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">
                       Subject Marks
@@ -249,7 +252,7 @@ export function MentorDashboard() {
                       {selected.subjects.map((sub) => (
                         <div
                           key={sub.name}
-                          className="rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-800/70"
+                          className="rounded-xl bg-[#FAF7FD] p-3 text-sm dark:bg-slate-800/70"
                         >
                           <p className="font-semibold">{sub.name}</p>
                           <p className="text-xs text-slate-500">
@@ -260,7 +263,6 @@ export function MentorDashboard() {
                     </div>
                   </div>
 
-                  {/* Remarks & Meeting */}
                   <div className="space-y-3 border-t border-slate-200 pt-4 dark:border-slate-800">
                     <label className="block">
                       <span className="text-sm font-bold">Mentor Remarks / Notes</span>
@@ -295,7 +297,7 @@ export function MentorDashboard() {
                         type="button"
                         disabled={saving}
                         onClick={() => saveMentorAction(false)}
-                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#4F46E5] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4338CA]"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#7B2D8E] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#5E206E]"
                       >
                         <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
                         <span>Save Remark</span>
@@ -304,7 +306,7 @@ export function MentorDashboard() {
                         type="button"
                         disabled={saving}
                         onClick={() => saveMentorAction(true)}
-                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#14B8A6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0D9488]"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] px-4 py-2.5 text-sm font-bold text-white hover:brightness-105"
                       >
                         <CalendarPlus className="h-4 w-4" aria-hidden="true" />
                         <span>Schedule meeting</span>

@@ -8,12 +8,21 @@ export default {
         sans: ['Inter', 'Poppins', 'system-ui', 'sans-serif'],
       },
       colors: {
+        brand: {
+          DEFAULT: '#7B2D8E',
+          dark: '#581C68',
+          light: '#F6EEFA',
+        },
+        cta: {
+          DEFAULT: '#FF6B4A',
+          hover: '#F05336',
+        },
         primary: {
-          DEFAULT: '#4F46E5',
-          50: '#EEF2FF',
-          100: '#E0E7FF',
-          600: '#4F46E5',
-          700: '#4338CA',
+          DEFAULT: '#7B2D8E',
+          50: '#F9F1FC',
+          100: '#F0DDF7',
+          600: '#7B2D8E',
+          700: '#5E206E',
         },
         tealaccent: {
           DEFAULT: '#14B8A6',

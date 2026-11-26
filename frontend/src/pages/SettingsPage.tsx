@@ -45,10 +45,10 @@ export function SettingsPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-2xl space-y-6">
-        <div>
+        <div className="rounded-2xl bg-gradient-to-r from-[#7B2D8E] to-[#581C68] p-6 text-white shadow-md">
           <h1 className="font-['Poppins'] text-2xl font-bold">Profile &amp; Settings</h1>
-          <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-            Update your details, theme, language, and notification alerts.
+          <p className="mt-1 text-base text-purple-100">
+            Update your details, 10th/12th track, theme, language, and alert preferences.
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export function SettingsPage() {
                 type="checkbox"
                 checked={notificationsEnabled}
                 onChange={(e) => setNotificationsEnabled(e.target.checked)}
-                className="h-5 w-5 accent-[#4F46E5]"
+                className="h-5 w-5 accent-[#7B2D8E]"
               />
             </label>
 
@@ -157,7 +157,7 @@ export function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4F46E5] py-3 text-base font-semibold text-white hover:bg-[#4338CA] disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] py-3.5 text-base font-bold text-white shadow-sm hover:brightness-105 disabled:opacity-60"
             >
               <Save className="h-5 w-5" aria-hidden="true" />
               <span>{saving ? 'Saving...' : 'Save Settings'}</span>

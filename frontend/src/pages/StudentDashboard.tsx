@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import {
   CalendarClock,
   Compass,
+  Flame,
   GraduationCap,
   MessageSquareHeart,
   Sparkles,
@@ -63,7 +64,14 @@ export function StudentDashboard() {
 
   return (
     <AppShell>
-      {showOnboarding && <OnboardingWizard onComplete={() => { setShowOnboarding(false); loadDashboard() }} />}
+      {showOnboarding && (
+        <OnboardingWizard
+          onComplete={() => {
+            setShowOnboarding(false)
+            loadDashboard()
+          }}
+        />
+      )}
 
       {loading ? (
         <DashboardSkeleton />
@@ -76,29 +84,38 @@ export function StudentDashboard() {
           transition={{ duration: 0.25 }}
           className="space-y-6"
         >
-          {/* Greeting + Single Primary Action */}
-          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#4F46E5] to-indigo-600 p-6 text-white shadow-md sm:flex-row sm:items-center">
-            <div>
-              <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">
-                {data.student.education_stage === '10th'
-                  ? `Class 10th Pass-Out • ${data.student.board_name}`
-                  : `Class 12th Pass-Out • ${data.student.stream}`}
-              </span>
-              <h1 className="mt-2 font-['Poppins'] text-2xl font-bold sm:text-3xl">
-                {getGreeting()}, {firstName} 👋
-              </h1>
-              <p className="mt-1 text-base text-indigo-100">
-                Today&apos;s focus: Keep your streak steady and review 1 weak topic before dinner.
-              </p>
+          {/* BYJU'S-inspired Purple Teen Hero Banner */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#883898] via-[#7B2D8E] to-[#581C68] p-6 text-white shadow-lg sm:p-7">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10" />
+            <div className="pointer-events-none absolute bottom-3 right-56 hidden h-10 w-10 items-center justify-center rounded-full bg-[#FFD166] text-xs font-extrabold text-slate-900 shadow md:flex">
+              π
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/chat')}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-base font-bold text-[#4F46E5] shadow-sm transition hover:bg-indigo-50"
-            >
-              <MessageSquareHeart className="h-5 w-5" aria-hidden="true" />
-              <span>Ask Advisor</span>
-            </button>
+            <div className="relative z-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold text-amber-200">
+                  <Flame className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>
+                    {data.student.education_stage === '10th'
+                      ? `Class 10th Pass-Out • ${data.student.board_name}`
+                      : `Class 12th Pass-Out • ${data.student.stream}`}
+                  </span>
+                </div>
+                <h1 className="mt-2 font-['Poppins'] text-2xl font-bold sm:text-3xl">
+                  {getGreeting()}, {firstName}! Ready to level up?
+                </h1>
+                <p className="mt-1 text-base text-purple-100">
+                  Today&apos;s focus: Knock out 1 study block and check your best career matches.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/chat')}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] px-6 py-3.5 text-base font-bold text-white shadow-md transition hover:brightness-105"
+              >
+                <MessageSquareHeart className="h-5 w-5" aria-hidden="true" />
+                <span>Ask Advisor</span>
+              </button>
+            </div>
           </div>
 
           {/* 4 Summary Cards */}
@@ -106,13 +123,15 @@ export function StudentDashboard() {
             <Card>
               <div className="flex items-center justify-between text-sm font-semibold text-slate-500 dark:text-slate-400">
                 <span>Current / Forecast CGPA</span>
-                <GraduationCap className="h-5 w-5 text-[#4F46E5]" aria-hidden="true" />
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-[#7B2D8E] dark:bg-purple-950">
+                  <GraduationCap className="h-5 w-5" aria-hidden="true" />
+                </span>
               </div>
               <p className="mt-3 font-['Poppins'] text-3xl font-bold">
                 {data.student.current_cgpa.toFixed(1)}{' '}
                 <span className="text-base font-medium text-slate-400">/ 10</span>
               </p>
-              <p className="mt-1 text-sm text-[#14B8A6] font-semibold">
+              <p className="mt-1 text-sm font-bold text-[#7B2D8E] dark:text-purple-300">
                 Next term forecast: {data.prediction.predicted_cgpa.toFixed(2)}
               </p>
             </Card>
@@ -120,14 +139,16 @@ export function StudentDashboard() {
             <Card>
               <div className="flex items-center justify-between text-sm font-semibold text-slate-500 dark:text-slate-400">
                 <span>Attendance</span>
-                <UserCheck className="h-5 w-5 text-[#14B8A6]" aria-hidden="true" />
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-[#14B8A6] dark:bg-teal-950">
+                  <UserCheck className="h-5 w-5" aria-hidden="true" />
+                </span>
               </div>
               <p className="mt-3 font-['Poppins'] text-3xl font-bold">
                 {data.student.attendance_pct.toFixed(0)}%
               </p>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
                 {data.student.attendance_pct >= 75
-                  ? 'Safely above 75% target'
+                  ? 'Awesome — safely above 75%'
                   : 'Below 75% — attend next 3 classes'}
               </p>
             </Card>
@@ -135,7 +156,9 @@ export function StudentDashboard() {
             <Card>
               <div className="flex items-center justify-between text-sm font-semibold text-slate-500 dark:text-slate-400">
                 <span>Risk Status</span>
-                <TrendingUp className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800">
+                  <TrendingUp className="h-5 w-5" aria-hidden="true" />
+                </span>
               </div>
               <div className="mt-3">
                 <RiskBadge risk={data.prediction.risk_level} />
@@ -148,13 +171,15 @@ export function StudentDashboard() {
             <Card>
               <div className="flex items-center justify-between text-sm font-semibold text-slate-500 dark:text-slate-400">
                 <span>Upcoming Deadlines</span>
-                <CalendarClock className="h-5 w-5 text-amber-500" aria-hidden="true" />
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B4A] dark:bg-orange-950">
+                  <CalendarClock className="h-5 w-5" aria-hidden="true" />
+                </span>
               </div>
               <p className="mt-3 font-['Poppins'] text-3xl font-bold">
                 {data.student.upcoming_deadlines_count}
               </p>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Mock tests &amp; assignments this month
+                Tests &amp; assignments this month
               </p>
             </Card>
           </div>
@@ -164,17 +189,17 @@ export function StudentDashboard() {
             <Card className="lg:col-span-2">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="font-['Poppins'] text-lg font-bold">Performance Trend</h2>
+                  <h2 className="font-['Poppins'] text-lg font-bold">Your Score Journey</h2>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Your score progression from school boards to current term
+                    How your marks &amp; CGPA are trending toward your goal
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => navigate('/performance')}
-                  className="text-sm font-semibold text-[#4F46E5] hover:underline"
+                  className="text-sm font-bold text-[#7B2D8E] hover:underline dark:text-purple-300"
                 >
-                  See prediction details
+                  See prediction details →
                 </button>
               </div>
               <div className="h-64 w-full">
@@ -192,9 +217,9 @@ export function StudentDashboard() {
                     <Line
                       type="monotone"
                       dataKey="cgpa"
-                      stroke="#4F46E5"
+                      stroke="#7B2D8E"
                       strokeWidth={3}
-                      dot={{ r: 5, fill: '#14B8A6' }}
+                      dot={{ r: 5, fill: '#FF6B4A' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -203,23 +228,23 @@ export function StudentDashboard() {
 
             <Card className="flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-2 text-[#4F46E5] dark:text-indigo-400">
+                <div className="flex items-center gap-2 text-[#7B2D8E] dark:text-purple-300">
                   <Sparkles className="h-5 w-5" aria-hidden="true" />
                   <h2 className="font-['Poppins'] text-lg font-bold text-slate-900 dark:text-white">
-                    Your AI Insights
+                    Smart Tips for You
                   </h2>
                 </div>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  3 simple actions tailored for you today
+                  3 quick wins to boost your score
                 </p>
 
                 <ul className="mt-4 space-y-3">
                   {data.prediction.ai_insights.map((tip, idx) => (
                     <li
                       key={idx}
-                      className="rounded-xl bg-slate-50 p-3.5 text-sm leading-relaxed text-slate-700 dark:bg-slate-800/70 dark:text-slate-200"
+                      className="rounded-xl border border-purple-100/80 bg-[#FAF7FD] p-3.5 text-sm leading-relaxed text-slate-700 dark:border-slate-800 dark:bg-slate-800/70 dark:text-slate-200"
                     >
-                      <span className="mr-2 font-bold text-[#4F46E5]">{idx + 1}.</span>
+                      <span className="mr-2 font-extrabold text-[#FF6B4A]">{idx + 1}.</span>
                       {tip}
                     </li>
                   ))}
@@ -240,42 +265,42 @@ export function StudentDashboard() {
             <button
               type="button"
               onClick={() => navigate('/chat')}
-              className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-[#4F46E5] dark:border-slate-800 dark:bg-slate-900"
+              className="flex items-center gap-3 rounded-2xl border border-purple-100 bg-white p-4 text-left shadow-sm transition hover:border-[#7B2D8E] dark:border-slate-800 dark:bg-slate-900"
             >
-              <div className="rounded-xl bg-indigo-50 p-3 text-[#4F46E5] dark:bg-indigo-950">
+              <div className="rounded-xl bg-purple-50 p-3 text-[#7B2D8E] dark:bg-purple-950">
                 <MessageSquareHeart className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-base font-bold">Ask Advisor</p>
-                <p className="text-sm text-slate-500">Get instant answers on CGPA &amp; streams</p>
+                <p className="text-sm text-slate-500">Get instant help on streams &amp; exams</p>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => navigate('/planner')}
-              className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-[#14B8A6] dark:border-slate-800 dark:bg-slate-900"
+              className="flex items-center gap-3 rounded-2xl border border-purple-100 bg-white p-4 text-left shadow-sm transition hover:border-[#14B8A6] dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="rounded-xl bg-teal-50 p-3 text-[#14B8A6] dark:bg-teal-950">
                 <CalendarClock className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-base font-bold">Open Study Plan</p>
-                <p className="text-sm text-slate-500">Weekly schedule built around weak areas</p>
+                <p className="text-sm text-slate-500">Weekly schedule built for your weak areas</p>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => navigate('/careers')}
-              className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-[#4F46E5] dark:border-slate-800 dark:bg-slate-900"
+              className="flex items-center gap-3 rounded-2xl border border-purple-100 bg-white p-4 text-left shadow-sm transition hover:border-[#FF6B4A] dark:border-slate-800 dark:bg-slate-900"
             >
-              <div className="rounded-xl bg-indigo-50 p-3 text-[#4F46E5] dark:bg-indigo-950">
+              <div className="rounded-xl bg-orange-50 p-3 text-[#FF6B4A] dark:bg-orange-950">
                 <Compass className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-base font-bold">View Careers</p>
-                <p className="text-sm text-slate-500">Top career &amp; course matches after 10th/12th</p>
+                <p className="text-sm text-slate-500">Top career &amp; stream matches for you</p>
               </div>
             </button>
           </div>

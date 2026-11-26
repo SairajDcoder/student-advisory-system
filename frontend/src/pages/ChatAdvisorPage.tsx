@@ -94,28 +94,26 @@ export function ChatAdvisorPage() {
   return (
     <AppShell>
       <div className="mx-auto flex h-[calc(100vh-11rem)] max-w-4xl flex-col gap-4">
-        <div>
-          <h1 className="font-['Poppins'] text-2xl font-bold">AI Chat Advisor</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Ask anything about your grades, 10th/12th streams, or career goals.
+        <div className="rounded-2xl bg-gradient-to-r from-[#7B2D8E] to-[#581C68] px-6 py-4 text-white shadow-sm">
+          <h1 className="font-['Poppins'] text-2xl font-bold">Chat with AdvisorAI</h1>
+          <p className="text-sm text-purple-100">
+            Ask doubts about 10th/12th streams, subjects, or career choices — like texting a friendly mentor.
           </p>
         </div>
 
-        {/* Suggested Chips */}
         <div className="flex flex-wrap gap-2">
           {SUGGESTED_QUESTIONS.map((q) => (
             <button
               key={q}
               type="button"
               onClick={() => sendMessage(q)}
-              className="rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-1.5 text-sm font-medium text-[#4F46E5] transition hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-300"
+              className="rounded-full border border-purple-200 bg-purple-50 px-3.5 py-1.5 text-sm font-semibold text-[#7B2D8E] transition hover:bg-purple-100 dark:border-purple-900 dark:bg-purple-950/60 dark:text-purple-200"
             >
               {q}
             </button>
           ))}
         </div>
 
-        {/* WhatsApp-style Chat Window */}
         <Card className="flex min-h-0 flex-1 flex-col p-0">
           <div className="flex-1 space-y-4 overflow-y-auto p-5">
             {loading ? (
@@ -136,14 +134,14 @@ export function ChatAdvisorPage() {
                     <div
                       className={`max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-3 text-base leading-relaxed shadow-sm ${
                         isUser
-                          ? 'rounded-br-sm bg-[#4F46E5] text-white'
-                          : 'rounded-bl-sm bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100'
+                          ? 'rounded-br-sm bg-gradient-to-r from-[#7B2D8E] to-[#632275] text-white'
+                          : 'rounded-bl-sm bg-[#FAF7FD] text-slate-900 dark:bg-slate-800 dark:text-slate-100'
                       }`}
                     >
                       {m.message}
                     </div>
                     {isUser && (
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-[#FF6B4A] dark:bg-slate-700 dark:text-slate-200">
                         <User className="h-4 w-4" aria-hidden="true" />
                       </div>
                     )}
@@ -157,8 +155,8 @@ export function ChatAdvisorPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#14B8A6] text-white">
                   <Bot className="h-4 w-4" aria-hidden="true" />
                 </div>
-                <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-medium text-slate-500 dark:bg-slate-800">
-                  AdvisorAI is thinking...
+                <div className="rounded-2xl bg-[#FAF7FD] px-4 py-3 text-sm font-medium text-slate-500 dark:bg-slate-800">
+                  AdvisorAI is typing...
                 </div>
               </div>
             )}
@@ -170,7 +168,7 @@ export function ChatAdvisorPage() {
               e.preventDefault()
               sendMessage(input)
             }}
-            className="flex items-center gap-2 border-t border-slate-200 p-3 dark:border-slate-800"
+            className="flex items-center gap-2 border-t border-purple-100 p-3 dark:border-slate-800"
           >
             <button
               type="button"
@@ -178,7 +176,7 @@ export function ChatAdvisorPage() {
               className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold ${
                 listening
                   ? 'border-rose-400 bg-rose-50 text-rose-600'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300'
+                  : 'border-slate-200 text-slate-600 hover:bg-purple-50 dark:border-slate-700 dark:text-slate-300'
               }`}
             >
               {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -191,13 +189,13 @@ export function ChatAdvisorPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your question here..."
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-base focus:border-[#4F46E5] focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800"
+              className="flex-1 rounded-xl border border-slate-200 bg-[#FAF7FD] px-4 py-2.5 text-base focus:border-[#7B2D8E] focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800"
             />
 
             <button
               type="submit"
               disabled={!input.trim() || typing}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#4F46E5] px-5 py-2.5 text-base font-semibold text-white hover:bg-[#4338CA] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] px-5 py-2.5 text-base font-bold text-white shadow-sm hover:brightness-105 disabled:opacity-50"
             >
               <Send className="h-4 w-4" aria-hidden="true" />
               <span>Send</span>

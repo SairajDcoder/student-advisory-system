@@ -15,6 +15,7 @@ export function AdminDashboard() {
   const [newUser, setNewUser] = useState({
     full_name: '',
     email: '',
+    password: '',
     role: 'student',
     department: '12th Pass-Out (PCM)',
   })
@@ -52,7 +53,7 @@ export function AdminDashboard() {
         method: 'POST',
         body: JSON.stringify(newUser),
       })
-      setNewUser({ full_name: '', email: '', role: 'student', department: '12th Pass-Out (PCM)' })
+      setNewUser({ full_name: '', email: '', password: '', role: 'student', department: '12th Pass-Out (PCM)' })
       setStatusMsg('User created successfully.')
       load()
     } catch (err) {
@@ -97,10 +98,10 @@ export function AdminDashboard() {
         <ErrorBanner message={error || 'Unable to load'} onRetry={load} />
       ) : (
         <div className="space-y-6">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#7B2D8E] to-[#581C68] p-6 text-white shadow-md sm:flex-row sm:items-center">
             <div>
               <h1 className="font-['Poppins'] text-2xl font-bold">Admin Console &amp; ML Operations</h1>
-              <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
+              <p className="mt-1 text-base text-purple-100">
                 Manage users, monitor department outcomes, upload datasets, and retrain XGBoost models.
               </p>
             </div>
@@ -108,7 +109,7 @@ export function AdminDashboard() {
               type="button"
               onClick={handleRetrain}
               disabled={retraining}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#4F46E5] px-5 py-3 text-base font-semibold text-white hover:bg-[#4338CA] disabled:opacity-60"
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] px-5 py-3 text-base font-bold text-white shadow-sm hover:brightness-105 disabled:opacity-60"
             >
               <RefreshCw className={`h-5 w-5 ${retraining ? 'animate-spin' : ''}`} aria-hidden="true" />
               <span>{retraining ? 'Retraining...' : 'Retrain ML Models'}</span>
@@ -116,12 +117,11 @@ export function AdminDashboard() {
           </div>
 
           {statusMsg && (
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-[#4F46E5]">
+            <div className="rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm font-semibold text-[#7B2D8E]">
               {statusMsg}
             </div>
           )}
 
-          {/* System Health Cards */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Card>
               <div className="flex items-center justify-between text-sm font-semibold text-slate-500">
@@ -146,7 +146,7 @@ export function AdminDashboard() {
 
             <Card>
               <p className="text-sm font-semibold text-slate-500">Risk Model Accuracy</p>
-              <p className="mt-2 font-['Poppins'] text-2xl font-bold text-[#4F46E5]">
+              <p className="mt-2 font-['Poppins'] text-2xl font-bold text-[#7B2D8E]">
                 {((data.system_health.ml_metrics?.risk_accuracy ?? 0.9) * 100).toFixed(1)}%
               </p>
               <p className="text-xs text-slate-500">
@@ -167,7 +167,6 @@ export function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Department Analytics + Dataset Upload */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <h2 className="font-['Poppins'] text-lg font-bold">Department / Track Analytics</h2>
@@ -179,8 +178,8 @@ export function AdminDashboard() {
                     <XAxis dataKey="department" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
-                    <Bar dataKey="avg_cgpa" name="Avg CGPA" fill="#4F46E5" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="students" name="Students" fill="#14B8A6" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="avg_cgpa" name="Avg CGPA" fill="#7B2D8E" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="students" name="Students" fill="#FF6B4A" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -194,15 +193,15 @@ export function AdminDashboard() {
               <p className="text-sm text-slate-600 dark:text-slate-300">
                 Upload a student CSV dataset (`attendance_pct`, `internal_marks_avg`, `next_cgpa`, `risk_level`, etc.) and retrain XGBoost.
               </p>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 p-5 text-sm font-semibold text-slate-700 hover:border-[#4F46E5] dark:border-slate-700 dark:text-slate-200">
-                <Upload className="h-5 w-5 text-[#4F46E5]" aria-hidden="true" />
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-purple-200 p-5 text-sm font-semibold text-slate-700 hover:border-[#7B2D8E] dark:border-slate-700 dark:text-slate-200">
+                <Upload className="h-5 w-5 text-[#7B2D8E]" aria-hidden="true" />
                 <span>Choose CSV Dataset</span>
                 <input type="file" accept=".csv" onChange={handleUpload} className="hidden" />
               </label>
 
               <form onSubmit={createUser} className="space-y-2.5 border-t border-slate-100 pt-4 dark:border-slate-800">
                 <p className="flex items-center gap-1.5 text-sm font-bold">
-                  <UserPlus className="h-4 w-4 text-[#4F46E5]" aria-hidden="true" />
+                  <UserPlus className="h-4 w-4 text-[#7B2D8E]" aria-hidden="true" />
                   <span>Quick Add User</span>
                 </p>
                 <input
@@ -219,6 +218,15 @@ export function AdminDashboard() {
                   placeholder="Email"
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
+                />
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  placeholder="Temporary password (min 6 chars)"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
                 />
                 <div className="grid grid-cols-2 gap-2">
@@ -242,13 +250,12 @@ export function AdminDashboard() {
             </Card>
           </div>
 
-          {/* User Management Table */}
           <Card className="overflow-x-auto p-0">
             <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-800">
               <h2 className="font-['Poppins'] text-lg font-bold">User Management</h2>
             </div>
             <table className="w-full min-w-[600px] text-left">
-              <thead className="bg-slate-50 text-xs font-bold uppercase text-slate-500 dark:bg-slate-800/60 dark:text-slate-300">
+              <thead className="bg-[#FAF7FD] text-xs font-bold uppercase text-slate-500 dark:bg-slate-800/60 dark:text-slate-300">
                 <tr>
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Email</th>

@@ -69,12 +69,12 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
       <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-900">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-[#4F46E5] dark:text-indigo-400">
+          <div className="flex items-center gap-2 text-[#7B2D8E] dark:text-purple-300">
             <Sparkles className="h-5 w-5" aria-hidden="true" />
-            <span className="text-sm font-semibold">Welcome Setup • Step {step} of 3</span>
+            <span className="text-sm font-bold">Quick Setup • Step {step} of 3</span>
           </div>
           <button
             type="button"
@@ -86,9 +86,9 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
           </button>
         </div>
 
-        <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-purple-100 dark:bg-slate-800">
           <div
-            className="h-full rounded-full bg-[#4F46E5] transition-all duration-300"
+            className="h-full rounded-full bg-gradient-to-r from-[#7B2D8E] to-[#FF6B4A] transition-all duration-300"
             style={{ width: `${(step / 3) * 100}%` }}
           />
         </div>
@@ -98,7 +98,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
             <div>
               <h2 className="font-['Poppins'] text-2xl font-bold">Your Academic Profile</h2>
               <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-                Enter your real 10th/12th scores and study habits so AI predictions reflect you accurately.
+                Tell us your 10th or 12th scores and study routine so your roadmap matches you.
               </p>
             </div>
 
@@ -110,7 +110,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   onClick={() => setEducationStage(st)}
                   className={`rounded-2xl border p-4 text-left transition ${
                     educationStage === st
-                      ? 'border-[#4F46E5] bg-indigo-50/70 ring-2 ring-[#4F46E5] dark:bg-indigo-950/50'
+                      ? 'border-[#7B2D8E] bg-purple-50/70 ring-2 ring-[#7B2D8E] dark:bg-purple-950/50'
                       : 'border-slate-200 hover:border-slate-300 dark:border-slate-700'
                   }`}
                 >
@@ -167,7 +167,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   max={99}
                   value={boardPct}
                   onChange={(e) => setBoardPct(Number(e.target.value))}
-                  className="mt-2.5 w-full accent-[#4F46E5]"
+                  className="mt-2.5 w-full accent-[#7B2D8E]"
                 />
               </label>
 
@@ -195,7 +195,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   max={100}
                   value={internalMarks}
                   onChange={(e) => setInternalMarks(Number(e.target.value))}
-                  className="mt-2.5 w-full accent-[#4F46E5]"
+                  className="mt-2.5 w-full accent-[#7B2D8E]"
                 />
               </label>
 
@@ -209,7 +209,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   max={45}
                   value={studyHours}
                   onChange={(e) => setStudyHours(Number(e.target.value))}
-                  className="mt-2.5 w-full accent-[#14B8A6]"
+                  className="mt-2.5 w-full accent-[#FF6B4A]"
                 />
               </label>
             </div>
@@ -221,7 +221,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
             <div>
               <h2 className="font-['Poppins'] text-2xl font-bold">Your Interests &amp; Skills</h2>
               <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-                Pick topics you enjoy and rate your current comfort level.
+                Pick what excites you and slide your comfort level.
               </p>
             </div>
 
@@ -235,8 +235,8 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     onClick={() => toggleInterest(topic)}
                     className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                       active
-                        ? 'bg-[#4F46E5] text-white'
-                        : 'border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                        ? 'bg-[#7B2D8E] text-white'
+                        : 'border border-slate-200 bg-slate-50 text-slate-700 hover:bg-purple-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                     }`}
                   >
                     {topic}
@@ -250,7 +250,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                 <div key={name}>
                   <div className="flex justify-between text-sm font-semibold">
                     <span>{name}</span>
-                    <span className="text-[#4F46E5]">{val}%</span>
+                    <span className="text-[#7B2D8E]">{val}%</span>
                   </div>
                   <input
                     type="range"
@@ -260,7 +260,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     onChange={(e) =>
                       setSkills((prev) => ({ ...prev, [name]: Number(e.target.value) }))
                     }
-                    className="mt-1 w-full accent-[#4F46E5]"
+                    className="mt-1 w-full accent-[#7B2D8E]"
                   />
                 </div>
               ))}
@@ -273,7 +273,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
             <div>
               <h2 className="font-['Poppins'] text-2xl font-bold">Your Main Goal</h2>
               <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-                Tell us what you want to achieve in the next 6–12 months.
+                What do you want to achieve in the next 6–12 months?
               </p>
             </div>
 
@@ -282,7 +282,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
               value={goals}
               onChange={(e) => setGoals(e.target.value)}
               placeholder="e.g. Pick the right college degree after 12th, improve Maths score, and build Python projects."
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-base focus:border-[#4F46E5] focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800"
+              className="w-full rounded-2xl border border-slate-200 bg-[#FAF7FD] p-4 text-base focus:border-[#7B2D8E] focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800"
             />
           </div>
         )}
@@ -304,7 +304,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
             <button
               type="button"
               onClick={() => setStep((s) => s + 1)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#4F46E5] px-6 py-3 text-base font-semibold text-white hover:bg-[#4338CA]"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] px-6 py-3 text-base font-bold text-white shadow-sm hover:brightness-105"
             >
               <span>Continue</span>
               <ArrowRight className="h-5 w-5" aria-hidden="true" />
@@ -314,7 +314,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
               type="button"
               onClick={() => handleFinish(false)}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#14B8A6] px-6 py-3 text-base font-semibold text-white hover:bg-[#0D9488] disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] px-6 py-3 text-base font-bold text-white shadow-sm hover:brightness-105 disabled:opacity-60"
             >
               <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
               <span>{saving ? 'Saving...' : 'Launch My Dashboard'}</span>

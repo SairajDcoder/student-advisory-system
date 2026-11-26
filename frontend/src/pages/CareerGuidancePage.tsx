@@ -37,34 +37,33 @@ export function CareerGuidancePage() {
         <ErrorBanner message={error || 'Unable to load'} onRetry={load} />
       ) : (
         <div className="space-y-6">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#7B2D8E] to-[#581C68] p-6 text-white shadow-md sm:flex-row sm:items-center">
             <div>
-              <h1 className="font-['Poppins'] text-2xl font-bold">Career &amp; Stream Guidance</h1>
-              <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-                Top 3 career matches for your {data.education_stage} profile, plus skills &amp; starter courses.
+              <h1 className="font-['Poppins'] text-2xl font-bold">Career &amp; Stream Explorer</h1>
+              <p className="mt-1 text-base text-purple-100">
+                Top 3 career paths tailored to your {data.education_stage} profile — with exact skills &amp; starter courses.
               </p>
             </div>
             <button
               type="button"
               onClick={() => navigate('/chat')}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#4F46E5] px-5 py-3 text-base font-semibold text-white hover:bg-[#4338CA]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF5163] px-5 py-3 text-base font-bold text-white shadow-sm hover:brightness-105"
             >
               <MessageSquareHeart className="h-5 w-5" aria-hidden="true" />
               <span>Discuss with Advisor</span>
             </button>
           </div>
 
-          {/* 10th Pass-Out Stream Banner */}
           {data.stream_recommendation && (
             <div className="rounded-2xl border border-teal-200 bg-teal-50 p-5 dark:border-teal-900 dark:bg-teal-950/40">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300">
                   <Sparkles className="h-5 w-5" aria-hidden="true" />
                   <span className="text-sm font-bold uppercase tracking-wide">
-                    Best Class 11–12 Stream for You
+                    Best Class 11–12 Stream Match
                   </span>
                 </div>
-                <span className="rounded-full bg-teal-600 px-3 py-1 text-xs font-bold text-white">
+                <span className="rounded-full bg-[#14B8A6] px-3 py-1 text-xs font-bold text-white">
                   {data.stream_recommendation.match_pct}% Match
                 </span>
               </div>
@@ -77,18 +76,17 @@ export function CareerGuidancePage() {
             </div>
           )}
 
-          {/* Top 3 Career Cards */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {data.careers.map((career, idx) => (
               <Card key={career.id} className="flex flex-col justify-between">
                 <div>
                   <div className="flex items-start justify-between gap-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-[#4F46E5] dark:bg-indigo-950 dark:text-indigo-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-[#7B2D8E] dark:bg-purple-950 dark:text-purple-300">
                       <Compass className="h-3.5 w-3.5" aria-hidden="true" />
-                      #{idx + 1} Match
+                      #{idx + 1} Pick
                     </span>
                     <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                      {career.match_pct}% fit
+                      {career.match_pct}% match
                     </span>
                   </div>
 
@@ -97,10 +95,9 @@ export function CareerGuidancePage() {
                     {career.summary}
                   </p>
 
-                  {/* Skill-Gap Progress Bars */}
                   <div className="mt-5">
                     <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                      Skill Gaps to Close
+                      Skills You Need
                     </h3>
                     <div className="mt-3 space-y-3">
                       {career.skill_gaps.map((sg) => (
@@ -108,12 +105,12 @@ export function CareerGuidancePage() {
                           <div className="flex justify-between text-xs font-semibold">
                             <span>{sg.skill}</span>
                             <span className="text-slate-500">
-                              You: {sg.current}% / Goal: {sg.target}%
+                              You: {sg.current}% / Target: {sg.target}%
                             </span>
                           </div>
                           <div className="relative mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                             <div
-                              className="h-full rounded-full bg-[#4F46E5]"
+                              className="h-full rounded-full bg-gradient-to-r from-[#7B2D8E] to-[#FF6B4A]"
                               style={{ width: `${sg.current}%` }}
                             />
                             <div
@@ -128,17 +125,16 @@ export function CareerGuidancePage() {
                   </div>
                 </div>
 
-                {/* Suggested Courses & Projects */}
                 <div className="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800">
                   <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-800 dark:text-slate-200">
                     <BookOpen className="h-4 w-4 text-[#14B8A6]" aria-hidden="true" />
-                    <span>Recommended Next Steps</span>
+                    <span>Starter Courses &amp; Projects</span>
                   </h3>
                   <ul className="mt-2.5 space-y-2">
                     {career.suggested_courses.map((course) => (
                       <li
                         key={course.title}
-                        className="flex items-start justify-between gap-2 rounded-xl bg-slate-50 p-2.5 text-xs dark:bg-slate-800/70"
+                        className="flex items-start justify-between gap-2 rounded-xl bg-[#FAF7FD] p-2.5 text-xs dark:bg-slate-800/70"
                       >
                         <div>
                           <p className="font-semibold text-slate-900 dark:text-white">
@@ -148,7 +144,7 @@ export function CareerGuidancePage() {
                             {course.provider} • {course.duration}
                           </p>
                         </div>
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-white px-2 py-0.5 font-semibold text-[#4F46E5] shadow-sm dark:bg-slate-700 dark:text-indigo-300">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-white px-2 py-0.5 font-semibold text-[#7B2D8E] shadow-sm dark:bg-slate-700 dark:text-purple-200">
                           <Award className="h-3 w-3" aria-hidden="true" />
                           {course.type}
                         </span>
