@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { apiRequest } from '../lib/api'
+import { supabase } from '../lib/supabase'
 import { User } from '../types'
 
 interface AuthContextValue {
@@ -8,9 +9,8 @@ interface AuthContextValue {
   theme: 'light' | 'dark'
   toggleTheme: () => void
   setThemeMode: (mode: 'light' | 'dark') => void
-  loginSuccess: (token: string, user: User) => void
-  refreshUser: () => Promise<void>
-  logout: () => void
+  refreshUser: () => Promise<User | null>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -33,12 +33,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('advisorai_theme', theme)
   }, [theme])
 
-  const refreshUser = async () => {
-    const token = localStorage.getItem('advisorai_token')
-    if (!token) {
+  const refreshUser = async (): Promise<User | null> => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session?.access_token) {
       setUser(null)
       setLoading(false)
-      return
+      return null
     }
     try {
       const me = await apiRequest<User>('/api/auth/me')
@@ -46,9 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (me.theme_preference === 'dark' || me.theme_preference === 'light') {
         setTheme(me.theme_preference)
       }
+      return me
     } catch {
-      localStorage.removeItem('advisorai_token')
       setUser(null)
+      return null
     } finally {
       setLoading(false)
     }
@@ -56,15 +60,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refreshUser()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.access_token) {
+        refreshUser()
+      } else {
+        setUser(null)
+        setLoading(false)
+      }
+    })
+    return () => subscription.unsubscribe()
   }, [])
 
-  const loginSuccess = (token: string, u: User) => {
-    localStorage.setItem('advisorai_token', token)
-    setUser(u)
-  }
-
-  const logout = () => {
-    localStorage.removeItem('advisorai_token')
+  const logout = async () => {
+    await supabase.auth.signOut()
     setUser(null)
   }
 
@@ -79,7 +89,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         theme,
         toggleTheme,
         setThemeMode,
-        loginSuccess,
         refreshUser,
         logout,
       }}

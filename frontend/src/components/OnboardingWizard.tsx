@@ -20,18 +20,19 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const [educationStage, setEducationStage] = useState<'10th' | '12th'>('12th')
   const [boardName, setBoardName] = useState('CBSE')
   const [stream, setStream] = useState('Science (PCM)')
-  const [boardPct, setBoardPct] = useState(82)
-  const [studyHours, setStudyHours] = useState(20)
-  const [interests, setInterests] = useState<string[]>(['Artificial Intelligence', 'Coding & Apps'])
+  const [boardPct, setBoardPct] = useState(80)
+  const [attendancePct, setAttendancePct] = useState(82)
+  const [internalMarks, setInternalMarks] = useState(76)
+  const [assignmentScore, setAssignmentScore] = useState(78)
+  const [studyHours, setStudyHours] = useState(18)
+  const [interests, setInterests] = useState<string[]>([])
   const [skills, setSkills] = useState({
-    Python: 65,
-    'Analytical Thinking': 75,
+    Python: 60,
+    'Analytical Thinking': 70,
     Communication: 70,
-    Design: 60,
+    Design: 55,
   })
-  const [goals, setGoals] = useState(
-    'Pick the best career track after board exams and keep my grades stress-free.'
-  )
+  const [goals, setGoals] = useState('')
   const [saving, setSaving] = useState(false)
 
   const toggleInterest = (topic: string) => {
@@ -50,10 +51,13 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
           board_name: boardName,
           stream,
           board_percentage: boardPct,
+          attendance_pct: attendancePct,
+          internal_marks_avg: internalMarks,
+          assignment_score_avg: assignmentScore,
           study_hours_per_week: studyHours,
           interests,
           skills,
-          goals,
+          goals: goals || 'Build strong skills and choose the best career path.',
           skip,
         }),
       })
@@ -66,7 +70,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-900">
+      <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-900">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-[#4F46E5] dark:text-indigo-400">
             <Sparkles className="h-5 w-5" aria-hidden="true" />
@@ -82,7 +86,6 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
           </button>
         </div>
 
-        {/* Progress Bar */}
         <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
           <div
             className="h-full rounded-full bg-[#4F46E5] transition-all duration-300"
@@ -93,9 +96,9 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
         {step === 1 && (
           <div className="mt-6 space-y-5">
             <div>
-              <h2 className="font-['Poppins'] text-2xl font-bold">Tell us your current stage</h2>
+              <h2 className="font-['Poppins'] text-2xl font-bold">Your Academic Profile</h2>
               <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-                We tailor stream, degree, and career advice specifically for 10th &amp; 12th graduates.
+                Enter your real 10th/12th scores and study habits so AI predictions reflect you accurately.
               </p>
             </div>
 
@@ -114,8 +117,8 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   <p className="text-base font-bold">Just Completed {st}</p>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
                     {st === '10th'
-                      ? 'Get 11th–12th stream & long-term career suggestions.'
-                      : 'Get degree, role & skill-gap recommendations.'}
+                      ? 'Get Class 11–12 stream & long-term career matches.'
+                      : 'Get degree, career role & skill-gap guidance.'}
                   </p>
                 </button>
               ))}
@@ -156,15 +159,43 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
 
               <label className="block">
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Latest Board % ({boardPct}%)
+                  Board Percentage ({boardPct}%)
                 </span>
                 <input
                   type="range"
-                  min={40}
+                  min={35}
                   max={99}
                   value={boardPct}
                   onChange={(e) => setBoardPct(Number(e.target.value))}
-                  className="mt-3 w-full accent-[#4F46E5]"
+                  className="mt-2.5 w-full accent-[#4F46E5]"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Attendance ({attendancePct}%)
+                </span>
+                <input
+                  type="range"
+                  min={35}
+                  max={100}
+                  value={attendancePct}
+                  onChange={(e) => setAttendancePct(Number(e.target.value))}
+                  className="mt-2.5 w-full accent-[#14B8A6]"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Internal / Pre-Board Marks ({internalMarks}%)
+                </span>
+                <input
+                  type="range"
+                  min={30}
+                  max={100}
+                  value={internalMarks}
+                  onChange={(e) => setInternalMarks(Number(e.target.value))}
+                  className="mt-2.5 w-full accent-[#4F46E5]"
                 />
               </label>
 
@@ -174,11 +205,11 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                 </span>
                 <input
                   type="range"
-                  min={4}
+                  min={2}
                   max={45}
                   value={studyHours}
                   onChange={(e) => setStudyHours(Number(e.target.value))}
-                  className="mt-3 w-full accent-[#14B8A6]"
+                  className="mt-2.5 w-full accent-[#14B8A6]"
                 />
               </label>
             </div>
@@ -188,9 +219,9 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
         {step === 2 && (
           <div className="mt-6 space-y-5">
             <div>
-              <h2 className="font-['Poppins'] text-2xl font-bold">Your interests &amp; comfort</h2>
+              <h2 className="font-['Poppins'] text-2xl font-bold">Your Interests &amp; Skills</h2>
               <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-                Pick topics you enjoy — this helps AdvisorAI match real-world careers.
+                Pick topics you enjoy and rate your current comfort level.
               </p>
             </div>
 
@@ -240,9 +271,9 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
         {step === 3 && (
           <div className="mt-6 space-y-5">
             <div>
-              <h2 className="font-['Poppins'] text-2xl font-bold">What is your main goal?</h2>
+              <h2 className="font-['Poppins'] text-2xl font-bold">Your Main Goal</h2>
               <p className="mt-1 text-base text-slate-600 dark:text-slate-300">
-                Write in plain words — e.g. &ldquo;Crack CS degree, keep 8.5+ CGPA, reduce exam stress.&rdquo;
+                Tell us what you want to achieve in the next 6–12 months.
               </p>
             </div>
 
@@ -250,6 +281,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
               rows={4}
               value={goals}
               onChange={(e) => setGoals(e.target.value)}
+              placeholder="e.g. Pick the right college degree after 12th, improve Maths score, and build Python projects."
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-base focus:border-[#4F46E5] focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800"
             />
           </div>

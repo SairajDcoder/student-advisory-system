@@ -2,20 +2,21 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GraduationCap, LogIn, ShieldCheck, UserPlus, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { apiRequest, ApiError } from '../lib/api'
-import { Role, User } from '../types'
+import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import { Role } from '../types'
 
 export function LoginPage() {
-  const { loginSuccess } = useAuth()
+  const { refreshUser } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [role, setRole] = useState<Role>('student')
   const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('aman@advisorai.edu')
-  const [password, setPassword] = useState('aman123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [educationStage, setEducationStage] = useState<'10th' | '12th'>('12th')
   const [stream, setStream] = useState('Science (PCM)')
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
 
   const routeForRole = (r: Role) => {
@@ -24,67 +25,84 @@ export function LoginPage() {
     return '/'
   }
 
-  const selectRolePreset = (selected: Role) => {
-    setRole(selected)
-    setError('')
-    if (mode === 'login') {
-      if (selected === 'student') {
-        setEmail('aman@advisorai.edu')
-        setPassword('aman123')
-      } else if (selected === 'mentor') {
-        setEmail('mentor@advisorai.edu')
-        setPassword('mentor123')
-      } else {
-        setEmail('admin@advisorai.edu')
-        setPassword('admin123')
-      }
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setInfo('')
+
+    if (!isSupabaseConfigured) {
+      setError('Supabase environment variables are missing. Check frontend/.env.')
+      return
+    }
+
     setBusy(true)
     try {
-      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register'
-      const body =
-        mode === 'login'
-          ? { email, password }
-          : {
-              full_name: fullName,
-              email,
-              password,
+      if (mode === 'login') {
+        const { error: authErr } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+        if (authErr) {
+          setError(authErr.message)
+          return
+        }
+        const me = await refreshUser()
+        if (me) {
+          navigate(routeForRole(me.role))
+        } else {
+          setError('Signed in with Supabase, but could not reach the AdvisorAI backend API.')
+        }
+      } else {
+        const { data, error: signUpErr } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: {
+              full_name: fullName.trim(),
               role,
               education_stage: educationStage,
               stream,
               department: `${educationStage} Pass-Out (${stream})`,
-            }
-
-      const data = await apiRequest<{ access_token: string; user: User }>(endpoint, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      })
-      loginSuccess(data.access_token, data.user)
-      navigate(routeForRole(data.user.role))
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Unable to sign in right now.')
+            },
+          },
+        })
+        if (signUpErr) {
+          setError(signUpErr.message)
+          return
+        }
+        if (data.session) {
+          const me = await refreshUser()
+          navigate(routeForRole(me?.role || role))
+        } else {
+          setInfo('Account created! Please check your email inbox to confirm, then sign in.')
+          setMode('login')
+        }
+      }
+    } catch {
+      setError('Unable to reach authentication service. Please try again.')
     } finally {
       setBusy(false)
     }
   }
 
-  const handleGoogleDemo = async () => {
+  const handleOAuth = async (provider: 'google' | 'github') => {
     setError('')
+    setInfo('')
+    if (!isSupabaseConfigured) {
+      setError('Supabase environment variables are missing. Check frontend/.env.')
+      return
+    }
     setBusy(true)
     try {
-      const data = await apiRequest<{ access_token: string; user: User }>('/api/auth/google-demo', {
-        method: 'POST',
-        body: JSON.stringify({ role }),
+      const { error: oauthErr } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+        },
       })
-      loginSuccess(data.access_token, data.user)
-      navigate(routeForRole(data.user.role))
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Google sign-in unavailable.')
+      if (oauthErr) {
+        setError(oauthErr.message)
+      }
     } finally {
       setBusy(false)
     }
@@ -105,47 +123,19 @@ export function LoginPage() {
           </p>
         </div>
 
-        {/* Role Selector */}
-        <div className="mt-6">
-          <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-            I am signing in as
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                { id: 'student', label: 'Student', icon: GraduationCap },
-                { id: 'mentor', label: 'Mentor', icon: Users },
-                { id: 'admin', label: 'Admin', icon: ShieldCheck },
-              ] as const
-            ).map((r) => {
-              const Icon = r.icon
-              const active = role === r.id
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => selectRolePreset(r.id)}
-                  className={`flex flex-col items-center gap-1 rounded-xl border py-2.5 text-sm font-semibold transition ${
-                    active
-                      ? 'border-[#4F46E5] bg-indigo-50 text-[#4F46E5] dark:bg-indigo-950/60 dark:text-indigo-300'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                  <span>{r.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
         {/* Mode Switch */}
-        <div className="mt-5 grid grid-cols-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+        <div className="mt-6 grid grid-cols-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
           <button
             type="button"
-            onClick={() => setMode('login')}
+            onClick={() => {
+              setMode('login')
+              setError('')
+              setInfo('')
+            }}
             className={`rounded-lg py-2 text-sm font-semibold transition ${
-              mode === 'login' ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-600 dark:text-slate-400'
+              mode === 'login'
+                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                : 'text-slate-600 dark:text-slate-400'
             }`}
           >
             Sign In
@@ -154,16 +144,54 @@ export function LoginPage() {
             type="button"
             onClick={() => {
               setMode('register')
-              setEmail('')
-              setPassword('')
+              setError('')
+              setInfo('')
             }}
             className={`rounded-lg py-2 text-sm font-semibold transition ${
-              mode === 'register' ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-600 dark:text-slate-400'
+              mode === 'register'
+                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                : 'text-slate-600 dark:text-slate-400'
             }`}
           >
             Create Account
           </button>
         </div>
+
+        {/* Role Selector (for Registration) */}
+        {mode === 'register' && (
+          <div className="mt-5">
+            <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Select your role
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  { id: 'student', label: 'Student', icon: GraduationCap },
+                  { id: 'mentor', label: 'Mentor', icon: Users },
+                  { id: 'admin', label: 'Admin', icon: ShieldCheck },
+                ] as const
+              ).map((r) => {
+                const Icon = r.icon
+                const active = role === r.id
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setRole(r.id)}
+                    className={`flex flex-col items-center gap-1 rounded-xl border py-2.5 text-sm font-semibold transition ${
+                      active
+                        ? 'border-[#4F46E5] bg-indigo-50 text-[#4F46E5] dark:bg-indigo-950/60 dark:text-indigo-300'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    <span>{r.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {error && (
           <div
@@ -171,6 +199,12 @@ export function LoginPage() {
             className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-200"
           >
             {error}
+          </div>
+        )}
+
+        {info && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200">
+            {info}
           </div>
         )}
 
@@ -186,7 +220,7 @@ export function LoginPage() {
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Aman Sharma"
+                  placeholder="Enter your full name"
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-base dark:border-slate-700 dark:bg-slate-800"
                 />
               </label>
@@ -234,9 +268,10 @@ export function LoginPage() {
             <input
               type="email"
               required
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="aman@advisorai.edu"
+              placeholder="you@example.com"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-base dark:border-slate-700 dark:bg-slate-800"
             />
           </label>
@@ -248,9 +283,11 @@ export function LoginPage() {
             <input
               type="password"
               required
+              minLength={6}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Minimum 6 characters"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-base dark:border-slate-700 dark:bg-slate-800"
             />
           </label>
@@ -276,26 +313,38 @@ export function LoginPage() {
 
         <div className="my-4 flex items-center gap-3">
           <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-          <span className="text-xs font-medium text-slate-400">OR</span>
+          <span className="text-xs font-medium text-slate-400">OR CONTINUE WITH</span>
           <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
         </div>
 
-        <button
-          type="button"
-          onClick={handleGoogleDemo}
-          disabled={busy}
-          className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white py-2.5 text-base font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-        >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-[#4F46E5]">
-            G
-          </span>
-          <span>Continue with Google ({role})</span>
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => handleOAuth('google')}
+            disabled={busy}
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-[#4F46E5]">
+              G
+            </span>
+            <span>Google</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleOAuth('github')}
+            disabled={busy}
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
+              GH
+            </span>
+            <span>GitHub</span>
+          </button>
+        </div>
 
         <p className="mt-4 text-center text-xs text-slate-500 dark:text-slate-400">
-          Demo accounts: <span className="font-semibold">aman@advisorai.edu</span> /{' '}
-          <span className="font-semibold">priya@advisorai.edu</span> (10th) /{' '}
-          <span className="font-semibold">rohan@advisorai.edu</span> (At-Risk)
+          Secured by Supabase Authentication
         </p>
       </div>
     </div>

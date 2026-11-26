@@ -1,8 +1,6 @@
 """
 SQLAlchemy ORM Data Model for AdvisorAI.
-Includes all 14 core entities:
-Users, Students, Mentors, Subjects, Marks, Attendance, Skills, Interests,
-Predictions, Recommendations, ChatMessages, StudyPlans, Notifications, Checkins.
+Includes all 14 core entities + supabase_uid linkage for Supabase Auth.
 """
 from datetime import datetime, timezone
 from sqlalchemy import (
@@ -29,11 +27,12 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
+    supabase_uid = Column(String(64), unique=True, index=True, nullable=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
     full_name = Column(String(120), nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=True)
     role = Column(String(30), nullable=False, default="student")  # student | mentor | admin
-    department = Column(String(80), default="Class 12 Science (PCM)")
+    department = Column(String(80), default="12th Pass-Out (Science PCM)")
     is_active = Column(Boolean, default=True)
     theme_preference = Column(String(20), default="light")
     language_preference = Column(String(20), default="en")
@@ -53,7 +52,7 @@ class Mentor(Base):
     specialization = Column(String(120), default="10th/12th Stream & Career Counseling")
     department = Column(String(80), default="Academic Advisory")
     bio = Column(Text, default="")
-    office_hours = Column(String(100), default="Mon–Fri, 4:00 PM – 6:00 PM")
+    office_hours = Column(String(100), default="Mon-Fri, 4:00 PM - 6:00 PM")
 
     user = relationship("User", back_populates="mentor_profile")
     students = relationship("Student", back_populates="mentor")
@@ -66,24 +65,23 @@ class Student(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
     mentor_id = Column(Integer, ForeignKey("mentors.id", ondelete="SET NULL"), nullable=True)
 
-    # Real-world 10th / 12th pass-out context
     education_stage = Column(String(20), default="12th")  # "10th" | "12th" | "college"
-    board_name = Column(String(40), default="CBSE")       # CBSE, ICSE, State Board
-    stream = Column(String(60), default="Science (PCM)")  # PCM, PCB, Commerce, Arts, General (10th)
+    board_name = Column(String(40), default="CBSE")
+    stream = Column(String(60), default="Science (PCM)")
     department = Column(String(80), default="12th Pass-Out (PCM)")
     current_semester = Column(Integer, default=1)
-    board_percentage = Column(Float, default=82.5)
-    current_cgpa = Column(Float, default=8.3)             # 10-point scale
-    attendance_pct = Column(Float, default=84.0)
-    internal_marks_avg = Column(Float, default=78.0)
-    assignment_score_avg = Column(Float, default=81.0)
-    study_hours_per_week = Column(Float, default=22.0)
-    previous_grades_json = Column(JSON, default=list)     # [{"term": "Term 1", "cgpa": 7.8}, ...]
-    goals = Column(Text, default="Build strong foundations and pick the right degree & career.")
+    board_percentage = Column(Float, default=75.0)
+    current_cgpa = Column(Float, default=7.5)
+    attendance_pct = Column(Float, default=80.0)
+    internal_marks_avg = Column(Float, default=75.0)
+    assignment_score_avg = Column(Float, default=75.0)
+    study_hours_per_week = Column(Float, default=18.0)
+    previous_grades_json = Column(JSON, default=list)
+    goals = Column(Text, default="")
     onboarding_completed = Column(Boolean, default=False)
     mentor_remarks = Column(Text, default="")
     next_meeting_at = Column(String(80), default="")
-    upcoming_deadlines_count = Column(Integer, default=3)
+    upcoming_deadlines_count = Column(Integer, default=2)
 
     user = relationship("User", back_populates="student_profile")
     mentor = relationship("Mentor", back_populates="students")
@@ -121,8 +119,8 @@ class Mark(Base):
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     internal_score = Column(Float, default=75.0)
-    assignment_score = Column(Float, default=80.0)
-    exam_score = Column(Float, default=78.0)
+    assignment_score = Column(Float, default=75.0)
+    exam_score = Column(Float, default=75.0)
     max_score = Column(Float, default=100.0)
     semester = Column(Integer, default=1)
 
@@ -150,7 +148,7 @@ class Skill(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(80), nullable=False)
-    level = Column(Integer, default=60)  # 0–100
+    level = Column(Integer, default=60)
 
     student = relationship("Student", back_populates="skills")
 
@@ -161,7 +159,7 @@ class Interest(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
     topic = Column(String(80), nullable=False)
-    weight = Column(Integer, default=80)  # 0–100
+    weight = Column(Integer, default=80)
 
     student = relationship("Student", back_populates="interests")
 
@@ -173,10 +171,10 @@ class Prediction(Base):
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
     predicted_cgpa = Column(Float, nullable=False)
     pass_probability = Column(Float, nullable=False)
-    risk_level = Column(String(20), nullable=False)  # Low | Medium | High
-    risk_score = Column(Float, nullable=False)       # 0–100
-    top_reasons = Column(JSON, default=list)         # [{"factor": ..., "impact": ..., "direction": ..., "plain_text": ...}]
-    ai_insights = Column(JSON, default=list)         # 3 actionable tips
+    risk_level = Column(String(20), nullable=False)
+    risk_score = Column(Float, nullable=False)
+    top_reasons = Column(JSON, default=list)
+    ai_insights = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), default=utcnow)
 
     student = relationship("Student", back_populates="predictions")
@@ -187,13 +185,13 @@ class Recommendation(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
-    rec_type = Column(String(30), nullable=False)    # career | stream | course | project
+    rec_type = Column(String(30), nullable=False)
     title = Column(String(120), nullable=False)
     match_pct = Column(Float, nullable=False)
     summary = Column(Text, nullable=False)
     required_skills = Column(JSON, default=list)
-    skill_gaps = Column(JSON, default=list)          # [{"skill": ..., "current": ..., "target": ...}]
-    suggested_courses = Column(JSON, default=list)   # [{"title": ..., "provider": ..., "duration": ..., "type": ...}]
+    skill_gaps = Column(JSON, default=list)
+    suggested_courses = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), default=utcnow)
 
     student = relationship("Student", back_populates="recommendations")
@@ -204,7 +202,7 @@ class ChatMessage(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
-    sender = Column(String(20), nullable=False)      # user | assistant
+    sender = Column(String(20), nullable=False)
     message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utcnow)
 
@@ -216,11 +214,11 @@ class StudyPlan(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
-    day_of_week = Column(String(20), nullable=False)  # Monday .. Sunday
+    day_of_week = Column(String(20), nullable=False)
     subject = Column(String(120), nullable=False)
     topic = Column(String(160), nullable=False)
     duration_minutes = Column(Integer, default=60)
-    priority = Column(String(20), default="medium")   # high | medium | low
+    priority = Column(String(20), default="medium")
     completed = Column(Boolean, default=False)
     order_index = Column(Integer, default=0)
 
@@ -234,7 +232,7 @@ class Notification(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String(120), nullable=False)
     message = Column(Text, nullable=False)
-    category = Column(String(30), default="info")     # warning | info | success | deadline
+    category = Column(String(30), default="info")
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=utcnow)
 
@@ -246,8 +244,8 @@ class Checkin(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
-    mood = Column(String(30), nullable=False)        # happy | calm | okay | stressed | overwhelmed
-    stress_score = Column(Integer, default=3)        # 1–5
+    mood = Column(String(30), nullable=False)
+    stress_score = Column(Integer, default=3)
     sleep_hours = Column(Float, default=7.0)
     answers = Column(JSON, default=dict)
     supportive_message = Column(Text, default="")

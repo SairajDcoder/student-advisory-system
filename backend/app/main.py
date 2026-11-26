@@ -1,40 +1,29 @@
 """
-AdvisorAI FastAPI Application
-=============================
-Complete REST API supporting:
-- JWT Auth & Role-Based Access (student, mentor, admin)
-- 3-Step Student Onboarding Wizard
-- Student Dashboard, Performance Prediction + SHAP XAI, Simulator
-- Content-based Career & Stream Guidance (10th & 12th pass-outs)
-- AI Chat Advisor (LLM + context-aware fallback)
-- Weekly Study Planner (auto-generate, drag-reorder, toggle complete)
-- Wellbeing Check-in + Mentor Talk flag
-- Notifications
-- Mentor Dashboard (assigned students, filter, detail drawer, remarks, schedule meeting)
-- Admin Dashboard (user management, department analytics, CSV dataset upload, XGBoost retrain)
+AdvisorAI FastAPI Application (Supabase Auth + Postgres/SQLAlchemy + XGBoost/SHAP)
+=================================================================================
 """
 import io
 from contextlib import asynccontextmanager
-from typing import Dict, List
+from typing import Dict
 
 import pandas as pd
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from backend.app.auth import (
-    create_access_token,
     get_current_user,
     hash_password,
     require_roles,
-    verify_password,
 )
-from backend.app.config import CORS_ORIGINS, DATA_DIR
-from backend.app.database import Base, SessionLocal, engine, get_db
+from backend.app.config import CORS_ORIGINS, SUPABASE_URL
+from backend.app.database import Base, engine, get_db
 from backend.app.models import (
+    Attendance,
     ChatMessage,
     Checkin,
     Interest,
+    Mark,
     Mentor,
     Notification,
     Prediction,
@@ -48,18 +37,15 @@ from backend.app.models import (
 from backend.app.schemas import (
     AdminUserCreateRequest,
     AdminUserToggleRequest,
+    AuthSyncRequest,
     ChatRequest,
     CheckinRequest,
-    GoogleDemoRequest,
-    LoginRequest,
     MentorRemarkRequest,
     OnboardingRequest,
     PredictionSimulateRequest,
     ProfileUpdateRequest,
-    RegisterRequest,
     StudyTaskUpdate,
 )
-from backend.app.seed import seed_database
 from backend.app.services import (
     build_ml_profile,
     build_wellbeing_support,
@@ -67,25 +53,26 @@ from backend.app.services import (
     generate_study_plan,
     refresh_student_ai,
 )
-from backend.ml.predictor import get_model_metrics, predict_student_performance, reload_models
+from backend.ml.predictor import (
+    ensure_models_loaded,
+    get_model_metrics,
+    predict_student_performance,
+    reload_models,
+)
 from backend.ml.train_models import DATASET_PATH, NUMERIC_FEATURES, train_and_save_models
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    """Initialize tables, ensure ML models are trained, and seed demo data."""
+    """Initialize DB tables and load/train XGBoost models on startup (no fake user seeding)."""
     Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        seed_database(db)
-    finally:
-        db.close()
+    ensure_models_loaded()
     yield
 
 
 app = FastAPI(
     title="AdvisorAI – Student Advisory System API",
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -109,6 +96,7 @@ def _serialize_user(user: User, db: Session) -> Dict:
     student = db.query(Student).filter(Student.user_id == user.id).first()
     return {
         "id": user.id,
+        "supabase_uid": user.supabase_uid,
         "email": user.email,
         "full_name": user.full_name,
         "role": user.role,
@@ -123,100 +111,41 @@ def _serialize_user(user: User, db: Session) -> Dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Auth & Onboarding
+# Health & Supabase Auth Profile Sync
 # ─────────────────────────────────────────────────────────────────────────────
 @app.get("/api/health")
 def health():
-    return {"status": "healthy", "ml_metrics": get_model_metrics()}
-
-
-@app.post("/api/auth/register")
-def register(payload: RegisterRequest, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == payload.email.lower()).first():
-        raise HTTPException(status_code=400, detail="An account with this email already exists.")
-
-    role = payload.role if payload.role in ("student", "mentor", "admin") else "student"
-    user = User(
-        email=payload.email.lower(),
-        full_name=payload.full_name,
-        password_hash=hash_password(payload.password),
-        role=role,
-        department=payload.department,
-    )
-    db.add(user)
-    db.flush()
-
-    if role == "student":
-        mentor = db.query(Mentor).first()
-        student = Student(
-            user_id=user.id,
-            mentor_id=mentor.id if mentor else None,
-            education_stage=payload.education_stage,
-            stream=payload.stream,
-            department=payload.department,
-            previous_grades_json=[
-                {"term": "Previous Term", "cgpa": 7.6},
-                {"term": "Board Score", "cgpa": 8.0},
-            ],
-            onboarding_completed=False,
-        )
-        db.add(student)
-        db.flush()
-        for code, name, weak in [
-            ("MAT101", "Mathematics", False),
-            ("SCI102", "Core Science / Tech", False),
-            ("ENG103", "English & Communication", False),
-            ("APT104", "Analytical Aptitude", True),
-        ]:
-            subj = Subject(student_id=student.id, code=code, name=name, weak_area=weak)
-            db.add(subj)
-        db.flush()
-        db.add(
-            ChatMessage(
-                student_id=student.id,
-                sender="assistant",
-                message=f"Welcome {payload.full_name.split()[0]}! 👋 I'm AdvisorAI. Complete your quick setup or ask me any question about 10th/12th streams, CGPA, or careers!",
-            )
-        )
-        refresh_student_ai(student, db)
-        generate_study_plan(student, db)
-    elif role == "mentor":
-        db.add(Mentor(user_id=user.id, department=payload.department))
-
-    db.commit()
-    token = create_access_token(user)
-    return {"access_token": token, "token_type": "bearer", "user": _serialize_user(user, db)}
-
-
-@app.post("/api/auth/login")
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email.lower()).first()
-    if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
-    if not user.is_active:
-        raise HTTPException(status_code=403, detail="Account is deactivated. Contact Admin.")
-    token = create_access_token(user)
-    return {"access_token": token, "token_type": "bearer", "user": _serialize_user(user, db)}
-
-
-@app.post("/api/auth/google-demo")
-def google_demo_login(payload: GoogleDemoRequest, db: Session = Depends(get_db)):
-    """Demo Google Sign-In endpoint matching role selection on the Login screen."""
-    email_map = {
-        "student": "aman@advisorai.edu",
-        "mentor": "mentor@advisorai.edu",
-        "admin": "admin@advisorai.edu",
+    return {
+        "status": "healthy",
+        "auth_provider": "supabase",
+        "supabase_configured": bool(SUPABASE_URL),
+        "ml_metrics": get_model_metrics(),
     }
-    target_email = (payload.email or email_map.get(payload.role, "aman@advisorai.edu")).lower()
-    user = db.query(User).filter(User.email == target_email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Demo account not found.")
-    token = create_access_token(user)
-    return {"access_token": token, "token_type": "bearer", "user": _serialize_user(user, db)}
 
 
 @app.get("/api/auth/me")
 def me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return _serialize_user(current_user, db)
+
+
+@app.post("/api/auth/sync")
+def sync_profile(
+    payload: AuthSyncRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if payload.full_name:
+        current_user.full_name = payload.full_name
+    student = db.query(Student).filter(Student.user_id == current_user.id).first()
+    if student:
+        if payload.education_stage:
+            student.education_stage = payload.education_stage
+        if payload.stream:
+            student.stream = payload.stream
+        if payload.education_stage or payload.stream:
+            student.department = f"{student.education_stage} Pass-Out ({student.stream})"
+            current_user.department = student.department
+    db.commit()
     return _serialize_user(current_user, db)
 
 
@@ -233,11 +162,28 @@ def complete_onboarding(
         student.stream = payload.stream
         student.board_percentage = payload.board_percentage
         student.current_cgpa = round(payload.board_percentage / 10.0, 2)
+        student.attendance_pct = payload.attendance_pct
+        student.internal_marks_avg = payload.internal_marks_avg
+        student.assignment_score_avg = payload.assignment_score_avg
         student.study_hours_per_week = payload.study_hours_per_week
         student.department = f"{payload.education_stage} Pass-Out ({payload.stream})"
         current_user.department = student.department
+        student.previous_grades_json = [
+            {"term": f"{payload.education_stage} Pre-Board", "cgpa": round(max(4.0, student.current_cgpa - 0.4), 2)},
+            {"term": f"{payload.education_stage} Board %", "cgpa": student.current_cgpa},
+        ]
         if payload.goals:
             student.goals = payload.goals
+
+        # Update subject scores to reflect real student baseline
+        for subj in student.subjects:
+            if subj.marks:
+                subj.marks[0].internal_score = payload.internal_marks_avg
+                subj.marks[0].assignment_score = payload.assignment_score_avg
+                subj.marks[0].exam_score = payload.board_percentage
+            for att in student.attendance_records:
+                if att.subject_name == subj.name:
+                    att.percentage = payload.attendance_pct
 
         if payload.interests:
             db.query(Interest).filter(Interest.student_id == student.id).delete()
@@ -283,9 +229,9 @@ def student_dashboard(
                 "id": subj.id,
                 "code": subj.code,
                 "subject": subj.name,
-                "internal": m.internal_score if m else 75,
-                "assignment": m.assignment_score if m else 78,
-                "exam": m.exam_score if m else 74,
+                "internal": m.internal_score if m else student.internal_marks_avg,
+                "assignment": m.assignment_score if m else student.assignment_score_avg,
+                "exam": m.exam_score if m else student.board_percentage,
                 "attendance": att.percentage if att else student.attendance_pct,
                 "weak_area": subj.weak_area,
                 "exam_date": subj.exam_date,
@@ -297,6 +243,10 @@ def student_dashboard(
         .filter(Notification.user_id == current_user.id, Notification.is_read.is_(False))
         .count()
     )
+
+    grades_series = student.previous_grades_json or [
+        {"term": f"{student.education_stage} Score", "cgpa": student.current_cgpa}
+    ]
 
     return {
         "student": {
@@ -313,7 +263,7 @@ def student_dashboard(
             "assignment_score_avg": student.assignment_score_avg,
             "study_hours_per_week": student.study_hours_per_week,
             "upcoming_deadlines_count": student.upcoming_deadlines_count,
-            "previous_grades": student.previous_grades_json or [],
+            "previous_grades": grades_series,
             "goals": student.goals,
             "mentor_remarks": student.mentor_remarks,
             "next_meeting_at": student.next_meeting_at,
@@ -338,7 +288,6 @@ def simulate_prediction(
     current_user: User = Depends(require_roles(["student"])),
     db: Session = Depends(get_db),
 ):
-    """Interactive what-if simulator on Performance & Prediction screen."""
     student = _get_student_for_user(current_user, db)
     profile = build_ml_profile(student, db)
     profile.update(
@@ -619,7 +568,7 @@ def submit_checkin(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Notifications & Profile Settings (All Authenticated Roles)
+# Notifications & Profile Settings
 # ─────────────────────────────────────────────────────────────────────────────
 @app.get("/api/notifications")
 def list_notifications(
@@ -689,10 +638,27 @@ def update_profile(
             student.stream = payload.stream
         if payload.department is not None:
             student.department = payload.department
+        if payload.attendance_pct is not None:
+            student.attendance_pct = payload.attendance_pct
+        if payload.internal_marks_avg is not None:
+            student.internal_marks_avg = payload.internal_marks_avg
+        if payload.study_hours_per_week is not None:
+            student.study_hours_per_week = payload.study_hours_per_week
         if payload.goals is not None:
             student.goals = payload.goals
 
     db.commit()
+    if student and any(
+        x is not None
+        for x in (
+            payload.education_stage,
+            payload.stream,
+            payload.attendance_pct,
+            payload.internal_marks_avg,
+            payload.study_hours_per_week,
+        )
+    ):
+        refresh_student_ai(student, db)
     return _serialize_user(current_user, db)
 
 
@@ -742,8 +708,8 @@ def mentor_students(
                 "subjects": [
                     {
                         "name": subj.name,
-                        "internal": subj.marks[0].internal_score if subj.marks else 75,
-                        "exam": subj.marks[0].exam_score if subj.marks else 75,
+                        "internal": subj.marks[0].internal_score if subj.marks else st.internal_marks_avg,
+                        "exam": subj.marks[0].exam_score if subj.marks else st.board_percentage,
                         "weak_area": subj.weak_area,
                     }
                     for subj in st.subjects
@@ -875,7 +841,7 @@ def admin_create_user(
             user_id=user.id,
             mentor_id=mentor.id if mentor else None,
             department=payload.department,
-            previous_grades_json=[{"term": "Board Score", "cgpa": 7.8}],
+            previous_grades_json=[],
             onboarding_completed=False,
         )
         db.add(st)

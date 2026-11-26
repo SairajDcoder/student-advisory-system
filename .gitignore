@@ -30,6 +30,17 @@ results/*.csv
 rubrics.docx
 *.log
 
+# Environment variables (never commit secrets)
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
 # AdvisorAI frontend & backend generated artifacts
 frontend/node_modules/
 frontend/dist/
