@@ -27,7 +27,7 @@ from src.config import RANDOM_SEED, CV_FOLDS, CV_REPEATS, RESULTS_DIR, PLOTS_DIR
 MODELS = {
     "Dummy (Most Frequent)": DummyClassifier(strategy="most_frequent"),
     "Logistic Regression": LogisticRegression(
-        max_iter=1000, random_state=RANDOM_SEED, multi_class="multinomial"
+        max_iter=1000, random_state=RANDOM_SEED
     ),
     "K-Nearest Neighbors": KNeighborsClassifier(n_neighbors=7),
     "Support Vector Machine": SVC(kernel="rbf", random_state=RANDOM_SEED),
