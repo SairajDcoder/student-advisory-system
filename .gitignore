@@ -29,6 +29,7 @@ results/*.csv
 # Misc
 rubrics.docx
 *.log
+~$*
 
 # Environment variables (never commit secrets)
 .env

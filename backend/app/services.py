@@ -11,7 +11,13 @@ from typing import Dict, List
 import httpx
 from sqlalchemy.orm import Session
 
-from backend.app.config import GEMINI_API_KEY, OPENAI_API_KEY, OPENAI_MODEL
+from backend.app.config import (
+    GEMINI_API_KEY,
+    GROQ_API_KEY,
+    GROQ_MODEL,
+    OPENAI_API_KEY,
+    OPENAI_MODEL,
+)
 from backend.app.models import (
     Checkin,
     Notification,
@@ -285,6 +291,28 @@ async def generate_advisor_reply(student: Student, user_message: str, db: Sessio
         "Speak in simple, clear, jargon-free language. Keep replies concise (3-5 bullet points or short paragraphs). "
         f"Student context: {context_summary}"
     )
+
+    if GROQ_API_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
+                    json={
+                        "model": GROQ_MODEL,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_message},
+                        ],
+                        "temperature": 0.6,
+                        "max_tokens": 600,
+                    },
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data["choices"][0]["message"]["content"].strip()
+        except Exception:
+            pass
 
     if OPENAI_API_KEY:
         try:
