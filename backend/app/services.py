@@ -44,21 +44,31 @@ def build_ml_profile(student: Student, db: Session) -> Dict:
     )
     stress_level = latest_checkin.stress_score if latest_checkin else 2
 
-    # Derive core subject scores from recorded marks if present
-    math_score = 74.0
-    science_score = 72.0
-    english_score = 76.0
-    for subj in student.subjects:
-        if not subj.marks:
-            continue
-        avg = (subj.marks[0].internal_score + subj.marks[0].exam_score) / 2.0
-        name_l = subj.name.lower()
-        if "math" in name_l or "quant" in name_l or "account" in name_l:
-            math_score = avg
-        elif "phys" in name_l or "chem" in name_l or "bio" in name_l or "science" in name_l:
-            science_score = avg
-        elif "eng" in name_l or "comm" in name_l:
-            english_score = avg
+    # Use saved profile subject scores when available, falling back to recorded marks
+    math_score = float(student.math_score) if student.math_score is not None else 70.0
+    science_score = float(student.science_score) if student.science_score is not None else 65.0
+    english_score = float(student.english_score) if student.english_score is not None else 72.0
+
+    coding_interest = (
+        float(student.programming_score)
+        if student.programming_score is not None
+        else skills_map.get("python", skills_map.get("coding", 60))
+    )
+    creativity_score = (
+        float(student.creativity_score)
+        if student.creativity_score is not None
+        else skills_map.get("design", skills_map.get("creativity", 55))
+    )
+    communication_score = (
+        float(student.communication_score)
+        if student.communication_score is not None
+        else skills_map.get("communication", 65)
+    )
+    projects_completed = (
+        int(student.projects_completed)
+        if student.projects_completed is not None
+        else (2 if student.education_stage == "12th" else 1)
+    )
 
     return {
         "education_stage": student.education_stage,
@@ -71,11 +81,11 @@ def build_ml_profile(student: Student, db: Session) -> Dict:
         "math_score": math_score,
         "science_score": science_score,
         "english_score": english_score,
-        "coding_interest": skills_map.get("python", skills_map.get("coding", 70)),
+        "coding_interest": coding_interest,
         "analytical_score": skills_map.get("analytical thinking", skills_map.get("problem solving", 72)),
-        "creativity_score": skills_map.get("design", skills_map.get("creativity", 66)),
-        "communication_score": skills_map.get("communication", 72),
-        "projects_completed": 2 if student.education_stage == "12th" else 1,
+        "creativity_score": creativity_score,
+        "communication_score": communication_score,
+        "projects_completed": projects_completed,
         "stress_level": stress_level,
     }
 

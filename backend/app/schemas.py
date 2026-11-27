@@ -63,7 +63,21 @@ class ProfileUpdateRequest(BaseModel):
     stream: Optional[str] = None
     attendance_pct: Optional[float] = Field(default=None, ge=0, le=100)
     internal_marks_avg: Optional[float] = Field(default=None, ge=0, le=100)
-    study_hours_per_week: Optional[float] = Field(default=None, ge=0, le=70)
+    study_hours_per_week: Optional[float] = Field(default=None, ge=0, le=80)
+    previous_gpa: Optional[float] = Field(default=None, ge=0, le=4)
+    math_score: Optional[float] = Field(default=None, ge=0, le=100)
+    science_score: Optional[float] = Field(default=None, ge=0, le=100)
+    english_score: Optional[float] = Field(default=None, ge=0, le=100)
+    programming_score: Optional[float] = Field(default=None, ge=0, le=100)
+    creativity_score: Optional[float] = Field(default=None, ge=0, le=100)
+    communication_score: Optional[float] = Field(default=None, ge=0, le=100)
+    leadership_score: Optional[float] = Field(default=None, ge=0, le=100)
+    extracurricular_activities: Optional[int] = Field(default=None, ge=0, le=5)
+    internship_experience: Optional[int] = Field(default=None, ge=0, le=1)
+    projects_completed: Optional[int] = Field(default=None, ge=0, le=10)
+    gender: Optional[str] = None
+    parental_education: Optional[str] = None
+    part_time_job: Optional[int] = Field(default=None, ge=0, le=1)
     goals: Optional[str] = None
     theme_preference: Optional[str] = None
     language_preference: Optional[str] = None

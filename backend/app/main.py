@@ -17,7 +17,7 @@ from backend.app.auth import (
     require_roles,
 )
 from backend.app.config import CORS_ORIGINS, SUPABASE_URL
-from backend.app.database import Base, engine, get_db
+from backend.app.database import Base, engine, ensure_schema_columns, get_db
 from backend.app.models import (
     Attendance,
     ChatMessage,
@@ -66,6 +66,7 @@ from backend.ml.train_models import DATASET_PATH, NUMERIC_FEATURES, train_and_sa
 async def lifespan(_app: FastAPI):
     """Initialize DB tables and load/train XGBoost models on startup (no fake user seeding)."""
     Base.metadata.create_all(bind=engine)
+    ensure_schema_columns()
     ensure_models_loaded()
     yield
 
@@ -107,6 +108,22 @@ def _serialize_user(user: User, db: Session) -> Dict:
         "onboarding_completed": student.onboarding_completed if student else True,
         "education_stage": student.education_stage if student else None,
         "stream": student.stream if student else None,
+        "study_hours_per_week": student.study_hours_per_week if student else None,
+        "attendance_pct": student.attendance_pct if student else None,
+        "previous_gpa": student.previous_gpa if student else None,
+        "math_score": student.math_score if student else None,
+        "science_score": student.science_score if student else None,
+        "english_score": student.english_score if student else None,
+        "programming_score": student.programming_score if student else None,
+        "creativity_score": student.creativity_score if student else None,
+        "communication_score": student.communication_score if student else None,
+        "leadership_score": student.leadership_score if student else None,
+        "extracurricular_activities": student.extracurricular_activities if student else None,
+        "internship_experience": student.internship_experience if student else None,
+        "projects_completed": student.projects_completed if student else None,
+        "gender": student.gender if student else None,
+        "parental_education": student.parental_education if student else None,
+        "part_time_job": student.part_time_job if student else None,
     }
 
 
@@ -632,32 +649,52 @@ def update_profile(
 
     student = db.query(Student).filter(Student.user_id == current_user.id).first()
     if student:
-        if payload.education_stage is not None:
-            student.education_stage = payload.education_stage
-        if payload.stream is not None:
-            student.stream = payload.stream
-        if payload.department is not None:
-            student.department = payload.department
-        if payload.attendance_pct is not None:
-            student.attendance_pct = payload.attendance_pct
-        if payload.internal_marks_avg is not None:
-            student.internal_marks_avg = payload.internal_marks_avg
-        if payload.study_hours_per_week is not None:
-            student.study_hours_per_week = payload.study_hours_per_week
-        if payload.goals is not None:
-            student.goals = payload.goals
+        student_fields = (
+            "education_stage",
+            "stream",
+            "department",
+            "attendance_pct",
+            "internal_marks_avg",
+            "study_hours_per_week",
+            "previous_gpa",
+            "math_score",
+            "science_score",
+            "english_score",
+            "programming_score",
+            "creativity_score",
+            "communication_score",
+            "leadership_score",
+            "extracurricular_activities",
+            "internship_experience",
+            "projects_completed",
+            "gender",
+            "parental_education",
+            "part_time_job",
+            "goals",
+        )
+        for field in student_fields:
+            val = getattr(payload, field)
+            if val is not None:
+                setattr(student, field, val)
 
     db.commit()
-    if student and any(
-        x is not None
-        for x in (
-            payload.education_stage,
-            payload.stream,
-            payload.attendance_pct,
-            payload.internal_marks_avg,
-            payload.study_hours_per_week,
-        )
-    ):
+    ai_trigger_fields = (
+        payload.education_stage,
+        payload.stream,
+        payload.attendance_pct,
+        payload.internal_marks_avg,
+        payload.study_hours_per_week,
+        payload.previous_gpa,
+        payload.math_score,
+        payload.science_score,
+        payload.english_score,
+        payload.programming_score,
+        payload.creativity_score,
+        payload.communication_score,
+        payload.leadership_score,
+        payload.projects_completed,
+    )
+    if student and any(x is not None for x in ai_trigger_fields):
         refresh_student_ai(student, db)
     return _serialize_user(current_user, db)
 

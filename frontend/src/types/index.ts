@@ -12,6 +12,22 @@ export interface User {
   onboarding_completed: boolean
   education_stage?: '10th' | '12th' | 'college' | null
   stream?: string | null
+  study_hours_per_week?: number | null
+  attendance_pct?: number | null
+  previous_gpa?: number | null
+  math_score?: number | null
+  science_score?: number | null
+  english_score?: number | null
+  programming_score?: number | null
+  creativity_score?: number | null
+  communication_score?: number | null
+  leadership_score?: number | null
+  extracurricular_activities?: number | null
+  internship_experience?: number | null
+  projects_completed?: number | null
+  gender?: string | null
+  parental_education?: string | null
+  part_time_job?: number | null
 }
 
 export interface ExplainFactor {
